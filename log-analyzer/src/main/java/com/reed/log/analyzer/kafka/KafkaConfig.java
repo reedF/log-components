@@ -22,12 +22,14 @@ public class KafkaConfig {
 	private String brokerList;
 	@Value("${spring.kafka.consumer.group-id}")
 	private String group;
+	@Value("${kafka.consumer.num}")
+	private int consumerNum = 2;
 
 	@Bean
 	public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<Integer, String>> kafkaListenerContainerFactory() {
 		ConcurrentKafkaListenerContainerFactory<Integer, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
 		factory.setConsumerFactory(consumerFactory());
-		factory.setConcurrency(3);
+		factory.setConcurrency(consumerNum);
 		factory.getContainerProperties().setPollTimeout(3000);
 		return factory;
 	}
@@ -41,6 +43,7 @@ public class KafkaConfig {
 	public KafkaListenerContainerFactory<?> batchFactory() {
 		ConcurrentKafkaListenerContainerFactory<Integer, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
 		factory.setConsumerFactory(consumerFactory());
+		factory.setConcurrency(consumerNum);
 		// set batch for lister
 		factory.setBatchListener(true);
 		return factory;

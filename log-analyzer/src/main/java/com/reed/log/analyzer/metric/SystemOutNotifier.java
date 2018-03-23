@@ -1,4 +1,4 @@
-package com.reed.log.test.metric;
+package com.reed.log.analyzer.metric;
 
 import org.elasticsearch.metrics.JsonMetrics;
 import org.elasticsearch.metrics.percolation.Notifier;

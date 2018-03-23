@@ -12,29 +12,44 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.reed.log.analyzer.metric.SystemOutNotifier;
 
 public class MetricTest {
-	static final MetricRegistry metrics = new MetricRegistry();
+	private static final MetricRegistry metrics = new MetricRegistry();
+	private static final Random rn = new Random();
+	private static ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).convertRatesTo(TimeUnit.SECONDS)
+			.convertDurationsTo(TimeUnit.MILLISECONDS).build();
+	private static ElasticsearchReporter reporterEs = null;
 
 	public static void main(String[] args) {
 
 		startReport();
-		startEsReport();
+		// startEsReport();
 		testMeter();
-		testQps();
-		testCost();
+		//testQps();
+		// testCost();
+		
 	}
 
 	private static void startReport() {
 		// 注册metrics,每个1秒打印metrics到控制台
-		ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).convertRatesTo(TimeUnit.SECONDS)
-				.convertDurationsTo(TimeUnit.MILLISECONDS).build();
 		reporter.start(5, TimeUnit.SECONDS);
+	}
+
+	private static void restartReport() {
+		reporter.close();
+		System.out.println("================" + metrics.getMetrics().get("count"));
+		reporter.start(5, TimeUnit.SECONDS);
+	}
+
+	private static void restartEsReport() {
+		reporterEs.stop();
+		reporterEs.start(5, TimeUnit.SECONDS);
 	}
 
 	private static void startEsReport() {
 		try {
-			ElasticsearchReporter reporter = ElasticsearchReporter.forRegistry(metrics)
+			reporterEs = ElasticsearchReporter.forRegistry(metrics)
 					// support for several es nodes: "ip1:port","ip2:port"
 					.hosts("192.168.59.103:9200")
 					// just create an index, no date format, means one index
@@ -47,7 +62,7 @@ public class MetricTest {
 					// .percolationNotifier(new HttpNotifier())
 					.build();
 			// usually you set this to one minute
-			reporter.start(10, TimeUnit.SECONDS);
+			reporterEs.start(10, TimeUnit.SECONDS);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -64,14 +79,16 @@ public class MetricTest {
 	private static void testMeter() {
 		// metrics:事件总数，平均速率,包含1分钟，5分钟，15分钟的速率
 		Meter requests = metrics.meter("requests");
-		// 计数一次
-		requests.mark();
-		waitSeconds(5000);
+		while (true) {
+			// 计数一次
+			requests.mark();
+			waitSeconds(rn.nextInt(500));
+		}
+
 	}
 
 	private static void testQps() {
 		Timer timer = metrics.timer(MetricRegistry.name(MetricTest.class, "calculation-duration"));
-		Random rn = new Random();
 		while (true) {
 			// 统计开始
 			final Timer.Context context = timer.time();
@@ -85,7 +102,6 @@ public class MetricTest {
 
 	private static void testCost() {
 		Histogram cost = metrics.histogram("cost");
-		Random rn = new Random();
 		while (true) {
 			// 统计开始
 			int sleepTime = rn.nextInt(2000);
