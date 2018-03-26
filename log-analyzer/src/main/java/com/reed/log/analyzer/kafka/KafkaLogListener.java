@@ -28,7 +28,7 @@ public class KafkaLogListener {
 		template.send(topic, key, data);
 	}
 
-	@KafkaListener(id = "test", topics = "logs")
+	// @KafkaListener(id = "test", topics = "logs")
 	public void listen(ConsumerRecord<?, ?> cr) {
 		logger.info("{} - {} : {}", cr.topic(), cr.key(), cr.value());
 
@@ -37,9 +37,15 @@ public class KafkaLogListener {
 	@KafkaListener(topics = "logs", containerFactory = "batchFactory")
 	public void listenBatch(List<ConsumerRecord<?, ?>> list) {
 		list.forEach(s -> {
-			logger.info("batch======>{}", s.toString());
+			// logger.info("batch======>{}", s.toString());
 			Map<String, Object> data = MsgUtil.getData(MsgUtil.msg2Map(s.value()));
-			metric.meter(MsgUtil.getFieldValue(data, "uri"));
+			String uri = MsgUtil.getFieldValue(data, MsgConstants.URI);
+			int status = MsgUtil.getFieldValue(data, MsgConstants.STATUS);
+			Map<String, Object> biz = MsgUtil.getBusinessData(data);
+			Integer code = MsgUtil.getFieldValue(biz, MsgConstants.CODE);
+			metric.meter(uri);
+			metric.meterError(uri, status);
+			metric.meterCode(uri, code);
 		});
 	}
 

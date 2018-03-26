@@ -1,7 +1,10 @@
 package com.reed.log.analyzer.metric;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.elasticsearch.metrics.ElasticsearchReporter;
@@ -28,7 +31,8 @@ public class MetricConfig {
 	// report存储在es的索引前缀
 	public static final String esIndex_prefix = "metrics";
 	// report上报间隔时间单位
-	public static final TimeUnit unit = TimeUnit.MINUTES;//TimeUnit.MINUTES SECONDS;
+	public static final TimeUnit unit = TimeUnit.MINUTES;// TimeUnit.MINUTES
+															// SECONDS;
 
 	@Value("${es.hosts}")
 	private String esHosts;
@@ -60,12 +64,14 @@ public class MetricConfig {
 	public ElasticsearchReporter esReporter(MetricRegistry metrics, SystemOutNotifier notifier) {
 		ElasticsearchReporter r = null;
 		try {
+			Map<String, Object> fields = new HashMap<>();
+			fields.put("host", getIp());
 			r = ElasticsearchReporter.forRegistry(metrics)
 					// support for several es nodes: "ip1:port","ip2:port"
 					.hosts(esHosts)
 					// just create an index, no date format, means one index
 					// only
-					.index(esIndex_prefix).indexDateFormat("yyyy-MM-dd")
+					.index(esIndex_prefix).indexDateFormat("yyyy-MM-dd").additionalFields(fields)
 					// define a percolation check on all metrics
 					.percolationFilter(MetricFilter.ALL)
 					// notifer
@@ -136,6 +142,16 @@ public class MetricConfig {
 	// @Bean
 	public Timer responses(MetricRegistry metrics) {
 		return metrics.timer("executeTime");
+	}
+
+	private String getIp() {
+		String host = null;
+		try {
+			host = InetAddress.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e) {
+			logger.error("get server host Exception e:>>>>>>>>>", e);
+		}
+		return host;
 	}
 
 }
