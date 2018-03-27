@@ -65,13 +65,15 @@ public class MetricConfig {
 		ElasticsearchReporter r = null;
 		try {
 			Map<String, Object> fields = new HashMap<>();
+			// add new fields to es index
 			fields.put("host", getIp());
 			r = ElasticsearchReporter.forRegistry(metrics)
 					// support for several es nodes: "ip1:port","ip2:port"
 					.hosts(esHosts)
-					// just create an index, no date format, means one index
-					// only
-					.index(esIndex_prefix).indexDateFormat("yyyy-MM-dd").additionalFields(fields)
+					// create an index, no date format, means just one index
+					.index(esIndex_prefix).indexDateFormat("yyyy-MM-dd")
+					// add customer fields
+					.additionalFields(fields)
 					// define a percolation check on all metrics
 					.percolationFilter(MetricFilter.ALL)
 					// notifer
