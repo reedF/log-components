@@ -8,6 +8,8 @@ package com.reed.log.analyzer.kafka;
  *
  */
 public class MsgConstants {
+	
+	public static final String APP = "appname";
 
 	public static final String MSG = "message";
 

@@ -27,6 +27,20 @@ public class MsgUtil {
 	}
 
 	/**
+	 * get playload form logstash("appname")
+	 * 
+	 * @param m
+	 * @return
+	 */
+	public static String getAppName(Map<String, Object> m) {
+		String r = "";
+		if (m != null) {
+			r = (String) m.get(MsgConstants.APP);
+		}
+		return r.isEmpty() ? r : r.toUpperCase();
+	}
+
+	/**
 	 * get playload form logstash("message")
 	 * 
 	 * @param m

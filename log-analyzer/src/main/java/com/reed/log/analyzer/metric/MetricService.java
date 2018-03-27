@@ -31,8 +31,8 @@ public class MetricService {
 	 * 
 	 * @param name
 	 */
-	public void meter(String name) {
-		String k = name;
+	public void meter(String appName, String name) {
+		String k = appName + METER + name;
 		if (metricSet != null && metricSet.getMetrics() != null) {
 			Map<String, Metric> m = metricSet.getMetrics();
 			if (m.containsKey(k)) {
@@ -51,9 +51,9 @@ public class MetricService {
 	 * @param uri
 	 * @param status
 	 */
-	public void meterError(String uri, int status) {
+	public void meterError(String appName, String uri, int status) {
 		if (status != SUCCESS) {
-			meter(METER_HTTP + status + METER + uri);
+			meter(appName, METER_HTTP + status + METER + uri);
 		}
 	}
 
@@ -63,9 +63,9 @@ public class MetricService {
 	 * @param uri
 	 * @param code
 	 */
-	public void meterCode(String uri, Integer code) {
+	public void meterCode(String appName, String uri, String code) {
 		if (code != null) {
-			meter(METER_BIZ + code + METER + uri);
+			meter(appName, METER_BIZ + code + METER + uri);
 		}
 	}
 
@@ -75,9 +75,9 @@ public class MetricService {
 	 * @param uri
 	 * @param cost
 	 */
-	public void histogramCost(String uri, int cost) {
+	public void histogramCost(String appName, String uri, int cost) {
 		if (metricSet != null && metricSet.getMetrics() != null && cost > 0) {
-			String k = HISTOGRAM_COST + uri;
+			String k = appName + METER + HISTOGRAM_COST + uri;
 			Map<String, Metric> m = metricSet.getMetrics();
 			if (m.containsKey(k)) {
 				((Histogram) m.get(k)).update(cost);

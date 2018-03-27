@@ -38,16 +38,18 @@ public class KafkaLogListener {
 	public void listenBatch(List<ConsumerRecord<?, ?>> list) {
 		list.forEach(s -> {
 			// logger.info("batch======>{}", s.toString());
-			Map<String, Object> data = MsgUtil.getData(MsgUtil.msg2Map(s.value()));
+			Map<String, Object> msg = MsgUtil.msg2Map(s.value());
+			String appName = MsgUtil.getAppName(msg);
+			Map<String, Object> data = MsgUtil.getData(msg);
 			String uri = MsgUtil.getFieldValue(data, MsgConstants.URI);
 			int cost = MsgUtil.getFieldValue(data, MsgConstants.COST);
 			int status = MsgUtil.getFieldValue(data, MsgConstants.STATUS);
 			Map<String, Object> biz = MsgUtil.getBusinessData(data);
-			Integer code = MsgUtil.getFieldValue(biz, MsgConstants.CODE);
-			metric.meter(uri);
-			metric.meterError(uri, status);
-			metric.meterCode(uri, code);
-			metric.histogramCost(uri, cost);
+			String code = MsgUtil.getFieldValue(biz, MsgConstants.CODE);
+			metric.meter(appName, uri);
+			metric.meterError(appName, uri, status);
+			metric.meterCode(appName, uri, code);
+			metric.histogramCost(appName, uri, cost);
 		});
 	}
 
