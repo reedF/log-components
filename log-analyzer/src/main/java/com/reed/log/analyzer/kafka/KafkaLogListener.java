@@ -40,12 +40,14 @@ public class KafkaLogListener {
 			// logger.info("batch======>{}", s.toString());
 			Map<String, Object> data = MsgUtil.getData(MsgUtil.msg2Map(s.value()));
 			String uri = MsgUtil.getFieldValue(data, MsgConstants.URI);
+			int cost = MsgUtil.getFieldValue(data, MsgConstants.COST);
 			int status = MsgUtil.getFieldValue(data, MsgConstants.STATUS);
 			Map<String, Object> biz = MsgUtil.getBusinessData(data);
 			Integer code = MsgUtil.getFieldValue(biz, MsgConstants.CODE);
 			metric.meter(uri);
 			metric.meterError(uri, status);
 			metric.meterCode(uri, code);
+			metric.histogramCost(uri, cost);
 		});
 	}
 

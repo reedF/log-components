@@ -32,10 +32,12 @@ public class MetricReporterTask {
 	@Autowired
 	private MetricSet metricSet;
 
-	//test,每分钟执行
+	// test,每分钟执行
 	@Scheduled(cron = "0 0/10 * * * ?")
 	public void timerForTest() {
-		cleanMetrics();
+		if (logger.isDebugEnabled()) {
+			cleanMetrics();
+		}
 	}
 
 	// 每天23:59:56秒时执行

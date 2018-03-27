@@ -25,9 +25,9 @@ public class MetricTest {
 
 		startReport();
 		// startEsReport();
-		testMeter();
+		//testMeter();
 		//testQps();
-		// testCost();
+		testCost();
 		
 	}
 

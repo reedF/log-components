@@ -13,6 +13,8 @@ public class MsgConstants {
 
 	public static final String URI = "uri";
 
+	public static final String COST = "cost";
+
 	public static final String STATUS = "httpCode";
 
 	public static final String OUT = "outputParamMap";

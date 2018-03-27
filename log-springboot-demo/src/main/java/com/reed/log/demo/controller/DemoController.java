@@ -1,5 +1,7 @@
 package com.reed.log.demo.controller;
 
+import java.util.Random;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +27,12 @@ public class DemoController {
 
 	@RequestMapping(value = "/json", produces = "application/json;charset=UTF-8")
 	public LogObj json(@RequestBody LogObj obj, String name, HttpServletRequest request) {
+		try {
+			Thread.sleep(new Random().nextInt(500));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return obj;
 	}
 }
