@@ -34,7 +34,7 @@ public class KafkaLogListener {
 
 	}
 
-	@KafkaListener(topics = "logs", containerFactory = "batchFactory")
+	@KafkaListener(topics = "${kafka.topic}", containerFactory = "batchFactory")
 	public void listenBatch(List<ConsumerRecord<?, ?>> list) {
 		list.forEach(s -> {
 			// logger.info("batch======>{}", s.toString());

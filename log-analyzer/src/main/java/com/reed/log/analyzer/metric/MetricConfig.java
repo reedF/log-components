@@ -35,7 +35,7 @@ public class MetricConfig {
 															// SECONDS;
 
 	@Value("${es.hosts}")
-	private String esHosts;
+	private String[] esHosts;
 	@Value("${es.reorter.interval}")
 	private int reportInterval;
 
