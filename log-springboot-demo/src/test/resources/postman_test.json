@@ -1,0 +1,300 @@
+{
+	"owner": "4022341",
+	"lastUpdatedBy": "4022341",
+	"lastRevision": 3509274643,
+	"team": null,
+	"id": "33b600c7-147c-799d-926b-4ac9a98d6402",
+	"name": "log",
+	"description": "",
+	"variables": null,
+	"auth": null,
+	"events": null,
+	"folders_order": [],
+	"order": [
+		"063c2f42-8c92-2806-56a5-aa4b6fa6b9b6",
+		"591f4521-b512-e996-8570-1cc746173d1e",
+		"c26ff756-0d31-5053-95db-bcd680c58779",
+		"cd9327ba-0c01-7bbe-7444-be293631ca45",
+		"de65f1e9-8db9-1083-f9a8-bff71c57b54a",
+		"6ae6bd30-d419-1c2d-1fdd-b26fac41b5cf",
+		"374b4c01-a7ce-9a87-0918-433893136e1e"
+	],
+	"folders": [],
+	"hasRequests": true,
+	"requests": [
+		{
+			"folder": null,
+			"id": "063c2f42-8c92-2806-56a5-aa4b6fa6b9b6",
+			"name": "http://localhost:8080/obj",
+			"dataMode": "params",
+			"data": [
+				{
+					"key": "uri",
+					"value": "eee",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "name",
+					"value": "222",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"auth": null,
+			"events": null,
+			"rawModeData": null,
+			"descriptionFormat": "html",
+			"description": null,
+			"variables": null,
+			"headers": "Content-Type: application/x-www-form-urlencoded\n",
+			"method": "POST",
+			"pathVariables": {},
+			"url": "http://localhost:8080/obj",
+			"preRequestScript": null,
+			"tests": null,
+			"currentHelper": null,
+			"helperAttributes": null,
+			"queryParams": [],
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/x-www-form-urlencoded"
+				}
+			],
+			"pathVariableData": [],
+			"responses": [],
+			"collectionId": "33b600c7-147c-799d-926b-4ac9a98d6402"
+		},
+		{
+			"folder": null,
+			"id": "374b4c01-a7ce-9a87-0918-433893136e1e",
+			"name": "http://localhost:8091/shopDatabase/queryOne",
+			"dataMode": "params",
+			"data": [
+				{
+					"key": "shopID",
+					"value": "1",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "groupID",
+					"value": "1",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"auth": null,
+			"events": null,
+			"rawModeData": null,
+			"descriptionFormat": "html",
+			"description": null,
+			"variables": null,
+			"headers": "Content-Type: application/json\n",
+			"method": "POST",
+			"pathVariables": {},
+			"url": "http://localhost:8091/shopDatabase/queryOne",
+			"preRequestScript": null,
+			"tests": null,
+			"currentHelper": null,
+			"helperAttributes": null,
+			"queryParams": [],
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json"
+				}
+			],
+			"pathVariableData": [],
+			"responses": [],
+			"collectionId": "33b600c7-147c-799d-926b-4ac9a98d6402"
+		},
+		{
+			"folder": null,
+			"id": "591f4521-b512-e996-8570-1cc746173d1e",
+			"name": "http://localhost:8080/json",
+			"dataMode": "raw",
+			"data": [],
+			"auth": null,
+			"events": null,
+			"rawModeData": "{\"cost\":0,\"inputParamMap\":{\"obj\":\"{\\\"cost\\\":0,\\\"endTime\\\":0,\\\"httpCode\\\":0,\\\"startTime\\\":0,\\\"uri\\\":\\\"jjjjj\\\"}\",\"name\":\"\\\"中午\\\"\"},\"startTime\":0,\"endTime\":0,\"httpCode\":0,\"uri\":\"jjjjj\"}",
+			"descriptionFormat": null,
+			"description": null,
+			"variables": null,
+			"headers": "Content-Type: application/json\n",
+			"method": "POST",
+			"pathVariables": {},
+			"url": "http://localhost:8080/json?name=1",
+			"preRequestScript": null,
+			"tests": null,
+			"currentHelper": null,
+			"helperAttributes": null,
+			"queryParams": [
+				{
+					"key": "name",
+					"value": "1"
+				}
+			],
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json"
+				}
+			],
+			"pathVariableData": [],
+			"responses": [],
+			"collectionId": "33b600c7-147c-799d-926b-4ac9a98d6402"
+		},
+		{
+			"folder": null,
+			"id": "6ae6bd30-d419-1c2d-1fdd-b26fac41b5cf",
+			"name": "http://localhost:8091/group/getFinanceBaseInfo",
+			"dataMode": "params",
+			"data": [],
+			"auth": null,
+			"events": null,
+			"rawModeData": null,
+			"descriptionFormat": "html",
+			"description": null,
+			"variables": null,
+			"headers": "Content-Type: application/json\n",
+			"method": "POST",
+			"pathVariables": {},
+			"url": "http://localhost:8091//group/getFinanceBaseInfo",
+			"preRequestScript": null,
+			"tests": null,
+			"currentHelper": null,
+			"helperAttributes": null,
+			"queryParams": [],
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json"
+				}
+			],
+			"pathVariableData": [],
+			"responses": [],
+			"collectionId": "33b600c7-147c-799d-926b-4ac9a98d6402"
+		},
+		{
+			"folder": null,
+			"id": "c26ff756-0d31-5053-95db-bcd680c58779",
+			"name": "http://localhost:8080/name",
+			"dataMode": "params",
+			"data": [
+				{
+					"key": "uri",
+					"value": "eee",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "name",
+					"value": "{\"code\":500,\"msg\":\"dddddddddd\",\"data\":\"{\\\"cost\\\":0,\\\"endTime\\\":1522052709887,\\\"httpCode\\\":200}\"}",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"auth": null,
+			"events": null,
+			"rawModeData": null,
+			"descriptionFormat": null,
+			"description": null,
+			"variables": null,
+			"headers": "Content-Type: application/x-www-form-urlencoded\n",
+			"method": "POST",
+			"pathVariables": {},
+			"url": "http://localhost:8080/name",
+			"preRequestScript": null,
+			"tests": null,
+			"currentHelper": null,
+			"helperAttributes": null,
+			"queryParams": [],
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/x-www-form-urlencoded"
+				}
+			],
+			"pathVariableData": [],
+			"responses": [],
+			"collectionId": "33b600c7-147c-799d-926b-4ac9a98d6402"
+		},
+		{
+			"folder": null,
+			"id": "cd9327ba-0c01-7bbe-7444-be293631ca45",
+			"name": "http://localhost:8080/obj",
+			"dataMode": "params",
+			"data": [
+				{
+					"key": "uri",
+					"value": "eee",
+					"type": "text",
+					"enabled": true
+				},
+				{
+					"key": "name",
+					"value": "222",
+					"type": "text",
+					"enabled": true
+				}
+			],
+			"auth": null,
+			"events": null,
+			"rawModeData": null,
+			"descriptionFormat": "html",
+			"description": null,
+			"variables": null,
+			"headers": "Content-Type: application/x-www-form-urlencoded\n",
+			"method": "POST",
+			"pathVariables": {},
+			"url": "http://localhost:8080/obj",
+			"preRequestScript": null,
+			"tests": null,
+			"currentHelper": null,
+			"helperAttributes": null,
+			"queryParams": [],
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/x-www-form-urlencoded"
+				}
+			],
+			"pathVariableData": [],
+			"responses": [],
+			"collectionId": "33b600c7-147c-799d-926b-4ac9a98d6402"
+		},
+		{
+			"folder": null,
+			"id": "de65f1e9-8db9-1083-f9a8-bff71c57b54a",
+			"name": "http://localhost:8091/tools/helloWorld",
+			"dataMode": "params",
+			"data": [],
+			"auth": null,
+			"events": null,
+			"rawModeData": null,
+			"descriptionFormat": null,
+			"description": null,
+			"variables": null,
+			"headers": "Content-Type: application/json\n",
+			"method": "POST",
+			"pathVariables": {},
+			"url": "http://localhost:8091/tools/helloWorld",
+			"preRequestScript": null,
+			"tests": null,
+			"currentHelper": null,
+			"helperAttributes": null,
+			"queryParams": [],
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json"
+				}
+			],
+			"pathVariableData": [],
+			"responses": [],
+			"collectionId": "33b600c7-147c-799d-926b-4ac9a98d6402"
+		}
+	]
+}
