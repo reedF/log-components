@@ -47,11 +47,38 @@ node.name: master
 node.master: true
 #是否存储数据
 node.data: true
-# head插件设置
+#head插件设置
 http.cors.enabled: true
 http.cors.allow-origin: "*"
 #设置可以访问的ip 这里全部设置通过
 network.bind_host: 0.0.0.0
 #设置节点 访问的地址 设置master所在机器的ip
 network.publish_host: 192.168.59.103
+
+
+# log-components使用方法：
+1.log-interceptor
+提供日志拦截器，AOP记录请求日志
+（1）在web项目(log-springboot-demo)中引入该依赖包
+（2）配置文件，配置启动拦截器与要拦截的包：
+log.aspect.enabled=true
+log.aspect.packages=com.reed.log.demo.controller,com.reed.log.test.controller
+（3）配置logback，将拦截器日志输出到文件，具体参见logback-spring.xml
+	<logger name="com.reed.log.interceptor.LogAspect" level="INFO"
+		additivity="false">
+		<appender-ref ref="ROLLING_FILE_ASPECT" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+（4）启动log-springboot-demo,使用测试脚本发送请求，测试脚本见demo下src/test/resources
+	
+2.logstash
+采集日志文件，输出到kafka、ES
+配置文件参见：logstash.conf
+
+3.log-analyzer
+使用Spring-kafka消费kafka中msg，并解析、统计，使用Metrics记录相关统计数据，并使用MetricsReporter定时提交结果到ES
+
+4.统计结果展示
+使用Grafana，读取ES数据，生成图表展示，具体图表配置可导入：Grafana-dashboard.json
+
 
