@@ -7,7 +7,7 @@ http://blog.163.com/wilicedon_lee/blog/static/81588483201543010474331/
 2.配置boot2docker共享目录
 http://blog.csdn.net/jam_lee/article/details/40947429
 3.修改镜像源
-sudo su echo “EXTRA_ARGS=\”–registry-mirror=https://registry.docker-cn.com\”” >> /var/lib/boot2docker/profile
+sudo su echo "EXTRA_ARGS=\"–registry-mirror=https://registry.docker-cn.com\"" >> /var/lib/boot2docker/profile
 exit
 重启boot2docker
 https://www.csdn.net/article/2014-12-15/2823143-Docker-image
@@ -15,6 +15,7 @@ https://www.csdn.net/article/2014-12-15/2823143-Docker-image
 sudo vi /etc/sysctl.conf
 添加vm.max_map_count=262144
 使生效sudo sysctl -p /etc/sysctl.conf
+
 
 
 # Docker cmd
