@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import com.reed.log.analyzer.kafka.stream.KafkaStreamsConfig;
 import com.reed.log.analyzer.metric.MetricService;
 
 /**
@@ -28,7 +29,7 @@ public class KafkaLogListener {
 		template.send(topic, key, data);
 	}
 
-	// @KafkaListener(id = "test", topics = "logs")
+	@KafkaListener(id = "test", topics = KafkaStreamsConfig.stores)
 	public void listen(ConsumerRecord<?, ?> cr) {
 		logger.info("{} - {} : {}", cr.topic(), cr.key(), cr.value());
 
