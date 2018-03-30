@@ -1,5 +1,6 @@
 package com.reed.log.analyzer.kafka;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +32,8 @@ public class KafkaLogListener {
 
 	@KafkaListener(id = "test", topics = KafkaStreamsConfig.stores)
 	public void listen(ConsumerRecord<?, ?> cr) {
-		logger.info("{} - {} : {}", cr.topic(), cr.key(), cr.value());
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		logger.info("{} - {} : {}  - {}", cr.topic(), cr.key(), cr.value(), formatter.format(cr.timestamp()));
 
 	}
 
