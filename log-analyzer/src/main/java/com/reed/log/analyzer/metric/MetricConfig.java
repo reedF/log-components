@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.elasticsearch.metrics.ElasticsearchReporter;
@@ -19,6 +20,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.Meter;
+import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.MetricSet;
@@ -98,7 +100,8 @@ public class MetricConfig {
 
 	@Bean
 	public MetricSet metricSet() {
-		MetricSet set = () -> new HashMap<>();
+		Map<String, Metric> map = new ConcurrentHashMap<>();
+		MetricSet set = () -> map;
 		return set;
 	}
 
