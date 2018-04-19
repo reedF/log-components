@@ -85,6 +85,10 @@ public class KafkaStreamsConfig {
 		props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
 		props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, windowSize);
 		// cunsumer setting
+		// 注：某些ConsumerConfig对kafka-stream启动的RestoreConsumer（消费store类topic）的消费者配置无效，参见{@link #StreamsConfig.getRestoreConsumerConfigs}
+		//props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
+		//props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2000);
+		//props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG,20000);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
 		// producer setting
 		props.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 1024 * 1024 * 20);
@@ -232,7 +236,7 @@ public class KafkaStreamsConfig {
 		// StateStoreSupplier myStore =
 		// Stores.create(storesName).withStringKeys().withStringValues().inMemory().build();
 		StoreBuilder builder = Stores.keyValueStoreBuilder(Stores.inMemoryKeyValueStore(storesName), Serdes.String(),
-				Serdes.Bytes());
+				Serdes.Bytes()).withCachingEnabled();
 		kStreamBuilder.addStateStore(builder);
 		KStream<String, String> stream = kStreamBuilder.stream(topic);
 

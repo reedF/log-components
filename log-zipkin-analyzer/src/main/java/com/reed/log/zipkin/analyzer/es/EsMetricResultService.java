@@ -79,11 +79,12 @@ public class EsMetricResultService {
 
 	}
 
-	public void saveAllCurrentResult() {
+	public int saveAllCurrentResult() {
 		List<EsMetricResult> r = findAllCurrentResult();
 		if (r != null && !r.isEmpty()) {
 			esRepository.saveAll(r);
 		}
+		return r.size();
 	}
 
 	private void getResult(Set<TreeObj> sets, List<EsMetricResult> list) {

@@ -86,16 +86,16 @@ public class TreeObjTransformer implements Transformer<String, String, KeyValue<
 			}
 		}
 		// 合并相同traceId的span为完整的跟踪树并发送---后期改为punctuate 定时发送
-		// if (!trees.isEmpty()) {
-		// for (Map.Entry<String, List<TreeObj>> entry : trees.entrySet()) {
-		// if (entry != null) {
-		// List<TreeObj> roots = TreeParser.getTreeList("-1", entry.getValue());
-		// roots.forEach(v -> {
-		// this.context.forward(entry.getKey(), v);
-		// });
-		// }
-		// }
-		// }
+		if (!trees.isEmpty()) {
+			for (Map.Entry<String, List<TreeObj>> entry : trees.entrySet()) {
+				if (entry != null) {
+					List<TreeObj> roots = TreeParser.getTreeList("-1", entry.getValue());
+					roots.forEach(v -> {
+						this.context.forward(entry.getKey(), v);
+					});
+				}
+			}
+		}
 
 		return null;
 
@@ -107,16 +107,8 @@ public class TreeObjTransformer implements Transformer<String, String, KeyValue<
 	@Override
 	public KeyValue<String, TreeObj> punctuate(long timestamp) {
 		// TODO 缓存一定时间的log，以合并相同traceId的span为完整的跟踪树
-		Map<String, List<TreeObj>> trees = getAllFromStore();
-		if (!trees.isEmpty()) {
-			for (Map.Entry<String, List<TreeObj>> entry : trees.entrySet()) {
-				if (entry != null) {
-					entry.getValue().forEach(v -> {
-						this.context.forward(entry.getKey(), v);
-					});
-				}
-			}
-		}
+		// 停止使用，此情况下存在消息消费不及时，堆积的问题，导致“*-repartition”类的topic的consumer出现timeout而进程退出，持续一段时间后所有consumer都shutdown，将无消费
+		// send();
 		return null;
 	}
 
@@ -158,4 +150,16 @@ public class TreeObjTransformer implements Transformer<String, String, KeyValue<
 		return trees;
 	}
 
+	private void send() {
+		Map<String, List<TreeObj>> trees = getAllFromStore();
+		if (!trees.isEmpty()) {
+			for (Map.Entry<String, List<TreeObj>> entry : trees.entrySet()) {
+				if (entry != null) {
+					entry.getValue().forEach(v -> {
+						this.context.forward(entry.getKey(), v);
+					});
+				}
+			}
+		}
+	}
 }

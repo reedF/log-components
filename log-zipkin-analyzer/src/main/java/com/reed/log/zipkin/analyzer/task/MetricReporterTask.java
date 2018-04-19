@@ -39,8 +39,9 @@ public class MetricReporterTask {
 	// @Scheduled(cron = "0 0/1 * * * ?")
 	@Scheduled(cron = "${metric.result.send.schedule}")
 	public void timerForEs() {
-		esResultService.saveAllCurrentResult();
-		logger.info("=========Send Metric Result to ES current time : {}=========", sdf.format(new Date()));
+		int r = esResultService.saveAllCurrentResult();
+		logger.info("=========Send Metric Result to ES current time : {},Data size : {}=========",
+				sdf.format(new Date()), r);
 	}
 
 	// 每天23:59:56秒时执行
