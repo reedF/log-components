@@ -139,5 +139,4 @@
 		</repository>
 	</repositories>
 
-	<description>使用kafka-stream,提供对zipkin span trace 日志的统计分析</description>
 </project>
