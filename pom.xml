@@ -35,6 +35,7 @@
 		<module>log-interceptor</module>
 		<module>log-analyzer</module>
 		<module>log-springboot-demo</module>
+		<module>log-zipkin-analyzer</module>
 	</modules>
 	<dependencyManagement>
 		<dependencies>

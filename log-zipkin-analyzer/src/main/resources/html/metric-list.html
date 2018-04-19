@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+<META HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate">
+<title>Metric Data Grid</title>
+<link rel="stylesheet" type="text/css" href="themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="themes/icon.css">
+<script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="jquery.easyui.min.js"></script>
+<style>
+  .datagrid-cell{
+    font-size:16px;
+  }
+  .tree-title{
+    font-size:14px;
+  }
+  .datagrid-header .datagrid-cell span {
+    font-size:18px;
+    font-weight:bold;
+  }  
+</style>
+<script type="text/javascript">
+	function doSearch() {
+/*注：使用class="easyui-treegrid"注册后，无需再次声明$('#dg').treegrid，否则会导致load加载两次
+		$('#dg').treegrid({
+			fitcolumns:true, 
+			idField : "id",
+			treeField : "name",
+			loadMsg : 'Loading...',
+			url : 'current/result?t=' + new Date().getTime(),
+			//pagination : true,
+			//queryParams : {
+			//	app : $('#app').combobox('getValue'),
+			//	name : $('#name').combobox('getValue')
+			//},
+			onBeforeLoad : function(param) {
+				//alert(param);
+				var firstLoad = $(this).attr('firstLoad');
+				if (firstLoad == 'false' || typeof (firstLoad) == 'undefined') {
+					$(this).attr('firstLoad', 'true');
+					return false;
+				}
+				return true;
+			},
+			onLoadSuccess : function(data) {
+				//alert(data);
+			},
+			onLoadError : function() {
+				alert("ERROR");
+			}
+		}); 
+*/
+		// 	$('#tt').treegrid('options').method = 'post';
+		//	$('#tt').treegrid('options').url='current/result?t=' + new Date().getTime() ;//+'&app=' + $('#app').combobox('getValue') + '&name=' + $('#name').combobox('getValue');
+		//	$('#tt').treegrid('reload',{
+		//		app: $('#app').combobox('getValue'),
+		//		name: $('#name').combobox('getValue'),
+		//	});
+		$('#dg').treegrid('reload', {
+			app : $('#app').combobox('getValue'),
+			name : $('#name').combobox('getValue')
+		});
+		//alert($('#dg').treegrid('options').url + "--"+ $('#dg').attr('firstLoad'));
+	}
+
+	function getApps() {
+		var value = "";
+		$.ajax({
+			url : "/apps",
+			async : false,
+			data : {},
+			success : function(data) {
+				alert(data);
+				value = data;
+			}
+		});
+		return value;
+	}
+	
+	function doubleFormatter(val,row) {
+		var key = this.field;
+		if (typeof(row.biz) != 'undefined' ) {
+			var s = row.biz[key]
+			if (typeof(s) != 'undefined' && !isNaN(s)) {
+				return s.toFixed(3);
+			}
+		}	
+	}
+	
+	function columnFormatter(val,row) {
+		//alert(this.field);
+		var key = this.field;
+		if (typeof(row.biz) != 'undefined' ) {
+			return row.biz[key];
+		}
+	}
+	
+	function errorFormatter(val,row) {
+		var key = this.field;
+		if (typeof(row.biz) != 'undefined' ) {
+			var s = row.biz[key]
+			if (typeof(s) != 'undefined' && !isNaN(s)) {
+				if (s > 0) {
+					return '<span style="color:red;font-weight:bold;">' + s.toFixed(3) + '</span>';
+				} else {
+					return s.toFixed(3);				
+				}
+			}
+		}
+	}	
+</script>
+
+</head>
+<body>
+	<h1>Metrics Data</h1>
+
+	<div id="tb" style="padding: 3px;">
+		<span>AppName:</span> 
+		<input id="app" class="easyui-combobox"
+			data-options="
+			  valueField: 'id',
+    		  textField: 'app',
+    		  url: 'apps',
+              onSelect: function(rec){
+                var url = 'spans?app='+rec.id;
+                $('#name').combobox('reload', url);
+         }">
+		<span>Span Name:</span> 
+		<input id="name" class="easyui-combobox"
+			data-options="
+			  valueField: 'id',
+    		  textField: 'name'
+		">
+		<a href="#" class="easyui-linkbutton" onclick="doSearch()">Search</a>
+	</div>
+	
+	<table id="dg" title="统计结果" class="easyui-treegrid" toolbar="#tb" 
+	    style="width:auto;height:auto;" rownumbers="true" fit="true" 
+	    idField="id" treeField="name" 
+		data-options=" 
+		    url:'current/result/tree',
+		    fitcolumns:true,
+			onBeforeLoad : function(param) {
+				//alert(param);
+				var firstLoad = $(this).attr('firstLoad');
+				if (firstLoad == 'false' || typeof (firstLoad) == 'undefined') {
+					$(this).attr('firstLoad', 'true');
+					return false;
+				}
+				return true;
+			}		
+		">
+		<thead >
+			<tr align="left" style="width:auto;">
+				<th data-options="field:'app'" >App</th>
+				<th data-options="field:'pid',hidden:true, formatter:columnFormatter" >PID</th>
+				<th data-options="field:'appName', formatter:columnFormatter" >Span App</th>
+				<th data-options="field:'name'" >Name</th>
+				<th data-options="field:'total', formatter:columnFormatter"  align="right">Total</th>
+				<th data-options="field:'qps', formatter:doubleFormatter" align="right">QPS</th>
+				<th data-options="field:'qpsMax', formatter:doubleFormatter" align="right">QPS-MAX</th>
+				<th data-options="field:'cost', formatter:doubleFormatter" align="right">平均耗时（微秒）</th>
+				<th data-options="field:'costMax', formatter:columnFormatter" align="right">平均耗时-极大值</th>
+				<th data-options="field:'errors', formatter:columnFormatter">错误数</th>
+				<th data-options="field:'errorRate' ,formatter:errorFormatter">错误率(%)</th>
+			</tr>
+		</thead>
+	</table>
+	
+
+</body>
+</html>
