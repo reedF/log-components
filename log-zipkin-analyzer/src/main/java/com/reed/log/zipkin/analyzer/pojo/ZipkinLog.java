@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * Zipkin logs
- *
+ * refer to : https://zipkin.io/zipkin-api/#/default/post_spans
  */
 public class ZipkinLog extends BaseObj {
 
@@ -19,6 +19,24 @@ public class ZipkinLog extends BaseObj {
 	private String traceId;
 	private String id;
 	private String parentId;
+	/**
+	 * CLIENT 
+	 * timestamp - The moment a request was sent (formerly “cs”) 
+	 * duration  - When present indicates when a response was received (formerly “cr”)
+	 * remoteEndpoint - Represents the server. Leave serviceName absent if  unknown. 
+	 * SERVER 
+	 * timestamp - The moment a request was received (formerly “sr”) 
+	 * duration - When present indicates when a response was sent (formerly “ss”) 
+	 * remoteEndpoint - Represents the client. Leave serviceName absent if unknown. 
+	 * PRODUCER 
+	 * timestamp - The moment a message was sent to a destination (formerly “ms”) 
+	 * duration - When present represents delay sending the message, such as batching. 
+	 * remoteEndpoint - Represents the broker. Leave serviceName absent if unknown. 
+	 * CONSUMER 
+	 * timestamp - The moment a message was received from an origin (formerly “mr”) 
+	 * duration - When present represents delay consuming the message, such as from backlog. 
+	 * remoteEndpoint - Represents the broker. Leave serviceName absent if unknown.
+	 */
 	private String kind;
 	private String name;
 	private long timestamp;
