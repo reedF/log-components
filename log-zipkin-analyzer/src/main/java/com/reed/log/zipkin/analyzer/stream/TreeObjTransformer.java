@@ -24,8 +24,8 @@ import com.reed.log.zipkin.analyzer.tree.TreeObj;
 import com.reed.log.zipkin.analyzer.tree.TreeParser;
 
 /**
- * 根据TraceID合并跟踪链，构造一个链为树
- * 为下游提供一次全链路请求键值对(K:traceId,V:TreeObj 包括链路内全部Span)，下游可继续根据跟踪链路标识（即树的层级结构）分组，将多个traceId的链路分到同组，统计链路内各级请求
+ * 根据TraceID合并同traceId下的全部Span为跟踪链，构造一个链为树
+ * 为下游提供一次全链路请求键值对(K:traceId,V:TreeObj 包括链路内全部Span)，下游可继续根据跟踪链路标识（即树的层级结构）分组，将不同traceId但链路标识相同的TreeObj分到同组，统计链路内各级请求
  * @author reed
  *
  */

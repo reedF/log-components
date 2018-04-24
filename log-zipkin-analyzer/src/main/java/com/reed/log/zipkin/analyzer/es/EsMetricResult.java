@@ -2,13 +2,13 @@ package com.reed.log.zipkin.analyzer.es;
 
 import java.util.Date;
 import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.reed.log.zipkin.analyzer.metric.MetricObj;
@@ -30,14 +30,16 @@ public class EsMetricResult extends BaseObj {
 	private String name;
 
 	@Field(type = FieldType.Object)
-	//jeasyui-datagrid解析json格式要求
+	// jeasyui-datagrid解析json格式要求
 	@JsonProperty(value = "children")
 	private List<MetricObj> spans;
 
-	//@Field(format = DateFormat.date_time, store = true, type = FieldType.Date)
+	//@Field(format = DateFormat.date_time, store = true, type = FieldType.Date,pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
 	//@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ", timezone = "GMT+8")
+	@Field(format = DateFormat.custom, store = true, type = FieldType.Date, pattern = "yyyy-MM-dd HH:mm:ss")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
 	private Date createTime = new Date();
-
+	
 	public Long getId() {
 		return id;
 	}

@@ -236,7 +236,7 @@ public class KafkaStreamsConfig {
 		// StateStoreSupplier myStore =
 		// Stores.create(storesName).withStringKeys().withStringValues().inMemory().build();
 		StoreBuilder builder = Stores.keyValueStoreBuilder(Stores.inMemoryKeyValueStore(storesName), Serdes.String(),
-				Serdes.Bytes()).withCachingEnabled();
+				Serdes.Bytes());
 		kStreamBuilder.addStateStore(builder);
 		KStream<String, String> stream = kStreamBuilder.stream(topic);
 
@@ -245,10 +245,11 @@ public class KafkaStreamsConfig {
 				.transform(() -> new TreeObjTransformer(), storesName)
 				// change key
 				.selectKey((k, v) -> v.getApp() + M + v.getName())
-				.groupByKey(Serialized.with(Serdes.String(), new JsonSerde<>(TreeObj.class)))
-				.aggregate(() -> null, aggregator, new JsonSerde<>(MetricObj.class), storesName + "-agg")
-				// .peek((k, v) -> metricService.initMetricObj(v))
-				.toStream().mapValues(v -> JSON.toJSONString(v))
+				//.groupByKey(Serialized.with(Serdes.String(), new JsonSerde<>(TreeObj.class)))
+				//.aggregate(() -> null, aggregator, new JsonSerde<>(MetricObj.class), storesName + "-agg")
+				.peek((k, v) -> aggregator.apply(null, v, null))
+				//.toStream()
+				.mapValues(v -> JSON.toJSONString(v))
 		//
 		;
 
