@@ -24,9 +24,9 @@ public class EsMetricResult extends BaseObj {
 
 	@Id
 	private Long id = System.nanoTime();
-
+	@Field(type = FieldType.keyword,fielddata=true)
 	private String app;
-
+	@Field(type = FieldType.keyword,fielddata=true)
 	private String name;
 
 	@Field(type = FieldType.Object)
@@ -36,8 +36,8 @@ public class EsMetricResult extends BaseObj {
 
 	//@Field(format = DateFormat.date_time, store = true, type = FieldType.Date,pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
 	//@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ", timezone = "GMT+8")
-	@Field(format = DateFormat.custom, store = true, type = FieldType.Date, pattern = "yyyy-MM-dd HH:mm:ss")
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+	@Field(format = DateFormat.custom, store = true, type = FieldType.Date, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ", timezone = "GMT+8")
 	private Date createTime = new Date();
 	
 	public Long getId() {
