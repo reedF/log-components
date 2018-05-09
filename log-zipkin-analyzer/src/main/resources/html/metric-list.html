@@ -93,7 +93,14 @@
 		//alert(this.field);
 		var key = this.field;
 		if (typeof(row.biz) != 'undefined' ) {
-			return row.biz[key];
+			if (key == 'costMax') {
+				var str = '<a href="#" class="easyui-linkbutton" onclick=searchTrace("';
+				str += key + '","' + row.biz.appName + '","' + row.biz.name  + '")>' + row.biz[key] + '</a>';
+				return str;
+			} else {
+				return row.biz[key];
+			}
+			
 		}
 	}
 	
@@ -103,20 +110,57 @@
 			var s = row.biz[key]
 			if (typeof(s) != 'undefined' && !isNaN(s)) {
 				if (s > 0) {
-					return '<span style="color:red;font-weight:bold;">' + s.toFixed(3) + '</span>';
+					var str = '<a href="#" class="easyui-linkbutton" onclick=searchTrace("';
+					str += key + '","' + row.biz.appName + '","' + row.biz.name  + '")>'
+					str += '<span style="color:red;font-weight:bold;">'+ s.toFixed(3) + '</span></a>';
+					return  str ;
 				} else {
 					return s.toFixed(3);				
 				}
 			}
 		}
-	}	
+	}
+	
+	function searchTrace(key,str1,str2) {
+		var t = new Date();
+		t.setMinutes(t.getMinutes() - 15);
+		//alert(key + str1 + str2);
+		if (str2.indexOf("||") != -1) {
+			s = str2.split("||");
+			str1 += "||" + s[0];
+			str2 = s[1];
+		}
+		if (key == 'errorRate') {
+			key = 'ERROR';
+		} else {
+			key = 'COST';
+		}
+		$('#traceDg').datagrid('reload', {
+			app : str1,
+			type: key,
+			name : str2,
+			end: t.getTime(),
+			sort: "children.duration,createTime,DESC"
+		});
+	}
+	function traceColumnFormatter(val,row) {
+		//alert(this.field);
+		var key = this.field.split(".");
+		if (typeof(row.children) != 'undefined' ) {
+			return row.children[key[0]][key[1]];
+		}
+	}
 </script>
 
 </head>
 <body>
 	<h1>Metrics Data</h1>
-
-	<div id="tb" style="padding: 3px;">
+<div id="layout" class="easyui-layout" style="width: auto;height:850px;">
+	
+	<!-- <div data-options="region:'west',split:true" title="" style="width:0%;"></div> -->
+	<!-- metrics tree grid -->
+    <div data-options="region:'center',title:'',split:true" style="width:70%;">
+    	<div id="tb" style="padding: 3px;">
 		<span>AppName:</span> 
 		<input id="app" class="easyui-combobox"
 			data-options="
@@ -137,7 +181,7 @@
 		<a href="#" class="easyui-linkbutton" onclick="doSearch()">Search</a>
 	</div>
 	
-	<table id="dg" title="统计结果" class="easyui-treegrid" toolbar="#tb" 
+	<table id="dg" title="实时统计结果" class="easyui-treegrid" toolbar="#tb" 
 	    style="width:auto;height:auto;" rownumbers="true" fit="true" 
 	    idField="id" treeField="name" 
 		data-options=" 
@@ -169,6 +213,50 @@
 			</tr>
 		</thead>
 	</table>
+    
+    </div>
+
+	<!-- trace log data grid -->
+    <div data-options="region:'east',title:'Trace信息' ,split:true" style="width:30%;">
+	<table id="traceDg" title="耗时&错误-Trace列表" class="easyui-datagrid" 
+	    style="width:auto;height:auto;" rownumbers="true" fit="true" 
+		data-options=" 
+		    url:'/es/trace',
+		    fitcolumns:true,
+			onBeforeLoad : function(param) {
+				//alert(param.content);
+				var firstLoad = $(this).attr('firstLoad');
+				if (firstLoad == 'false' || typeof (firstLoad) == 'undefined') {
+					$(this).attr('firstLoad', 'true');
+					return false;
+				}
+				return true;
+			},
+		    loadFilter : function(data) {
+		    	//alert(data);
+		    	var value={
+				total:data.totalElements,
+				rows:[]
+				};		    	
+		    	if (data) {
+					value.rows = data.content;
+		    	}
+		    	return value;
+		    }		
+		">
+		<thead >
+			<tr align="left" style="width:auto;">
+				<th data-options="field:'traceId'" >TraceID</th>
+				<th data-options="field:'createTime'" >CreateTime</th>
+				<th data-options="field:'localEndpoint.ipv4', formatter:traceColumnFormatter" >IP</th>
+			</tr>
+		</thead>
+	</table>    
+    </div>
+
+</div>
+
+
 	
 
 </body>

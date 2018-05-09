@@ -1,11 +1,19 @@
 package com.reed.log.zipkin.analyzer.es;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.codahale.metrics.Counter;
@@ -26,6 +34,8 @@ public class EsMetricResultService {
 	private MetricsCacheService cacheService;
 	@Autowired
 	private MetricService metricService;
+	@Autowired
+	private EsZipkinRepository esZipkinRepository;
 
 	public List<EsMetricResult> findAllCurrentResult() {
 		List<EsMetricResult> list = new ArrayList<>();
@@ -85,6 +95,27 @@ public class EsMetricResultService {
 			esRepository.saveAll(r);
 		}
 		return r.size();
+	}
+
+	/**
+	 * 根据应用名、span名称等查询trace信息
+	 * @param app
+	 * @param type
+	 * @param spanName
+	 * @param start
+	 * @param end
+	 * @param pageable
+	 * @return
+	 */
+	public Page<EsZipkin> findTrace(String app, String type, String spanName, String start, String end,
+			Pageable pageable) {
+		QueryBuilder queryBuilder = QueryBuilders.boolQuery().must(QueryBuilders.termQuery("app.keyword", app))
+				.must(QueryBuilders.termQuery("type.keyword", type))
+				.must(QueryBuilders.termQuery("children.name.keyword", spanName))
+				.must(QueryBuilders.rangeQuery("createTime").gte(start).lte(end));
+		Page<EsZipkin> page = esZipkinRepository.search(queryBuilder, pageable);
+		Page<EsZipkin> pageResult = new PageImpl<>(page.getContent(), pageable, page.getTotalElements());
+		return pageResult;
 	}
 
 	private void getResult(Set<TreeObj> sets, List<EsMetricResult> list) {
