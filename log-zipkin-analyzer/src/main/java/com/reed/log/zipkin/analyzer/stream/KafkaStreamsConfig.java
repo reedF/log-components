@@ -237,7 +237,8 @@ public class KafkaStreamsConfig {
 		// Stores.create(storesName).withStringKeys().withStringValues().inMemory().build();
 		StoreBuilder builder = Stores.keyValueStoreBuilder(Stores.inMemoryKeyValueStore(storesName), Serdes.String(),
 				Serdes.Bytes());
-		kStreamBuilder.addStateStore(builder);
+		//使用withLoggingDisabled后，将不会自动创建“xxx-changelog”类topic,Store不再提供容错恢复
+		kStreamBuilder.addStateStore(builder.withLoggingDisabled());
 		KStream<String, String> stream = kStreamBuilder.stream(topic);
 
 		KStream<String, String> out = stream
