@@ -167,7 +167,9 @@ public class EsMetricResultService {
 			o.setQpsMax(m.getMeanRate());
 		}
 		if (h != null) {
-			o.setCost(h.getSnapshot().get99thPercentile());
+			o.setCost(h.getSnapshot().getMean());
+			o.setCostTp95(h.getSnapshot().get95thPercentile());
+			o.setCostTp99(h.getSnapshot().get99thPercentile());
 			o.setCostMax(h.getSnapshot().getMax());
 		}
 		if (c != null) {

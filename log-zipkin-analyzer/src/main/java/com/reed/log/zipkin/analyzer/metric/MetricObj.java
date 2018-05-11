@@ -24,12 +24,17 @@ public class MetricObj extends BaseObj {
 	private Double qpsMax;
 	// 平均耗时，单位微秒（1秒= 1000 * 1000 微秒）
 	private Double cost;
+
+	private Double costTp99;
+
+	private Double costTp95;
 	// 平均耗时极值，单位微秒
 	private Long costMax;
 	// 错误数
 	private long errors;
 	// 错误率(%)
-	private Double errorRate = (this.total != null && this.total > 0) ? this.errors / this.total.doubleValue() * 100.00 : null;
+	private Double errorRate = (this.total != null && this.total > 0) ? this.errors / this.total.doubleValue() * 100.00
+			: null;
 
 	public long getId() {
 		return id;
@@ -93,6 +98,22 @@ public class MetricObj extends BaseObj {
 
 	public void setCost(Double cost) {
 		this.cost = cost;
+	}
+
+	public Double getCostTp99() {
+		return costTp99;
+	}
+
+	public void setCostTp99(Double costTp99) {
+		this.costTp99 = costTp99;
+	}
+
+	public Double getCostTp95() {
+		return costTp95;
+	}
+
+	public void setCostTp95(Double costTp95) {
+		this.costTp95 = costTp95;
 	}
 
 	public Long getCostMax() {

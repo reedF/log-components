@@ -28,5 +28,6 @@ public class DateTest {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String str = sdf.format(date);
 		System.out.println(str);
+		System.out.println(new Date(1524640717334l));
 	}
 }

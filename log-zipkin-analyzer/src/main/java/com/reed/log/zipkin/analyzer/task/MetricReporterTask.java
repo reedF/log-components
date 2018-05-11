@@ -47,6 +47,7 @@ public class MetricReporterTask {
 	// 每天23:59:56秒时执行
 	@Scheduled(cron = scheduler)
 	public void timerForReporter() {
+		timerForEs();
 		cleanMetrics();
 	}
 
