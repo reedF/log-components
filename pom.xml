@@ -29,6 +29,25 @@
 					<fork>true</fork>
 				</configuration>
 			</plugin>
+			<!-- maven release: 
+				自动准备发布与tag:mvn release:clean release:prepare
+				正式发布打包并提交到nexus:mvn release:perform	
+			 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+				<configuration>
+					<tagNameFormat>v@{project.version}</tagNameFormat>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<modules>
