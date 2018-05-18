@@ -304,7 +304,7 @@
               ],
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "app:$App AND name:$SpanName",
+              "query": "app:\"$App\" AND name:\"$SpanName\"",
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -594,7 +594,7 @@
               ],
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "app:$App AND name:$SpanName",
+              "query": "app:\"$App\" AND name:\"$SpanName\"",
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -898,7 +898,7 @@
               ],
               "orderByTime": "ASC",
               "policy": "default",
-              "query": "app:$App AND name:$SpanName",
+              "query": "app:\"$App\" AND name:\"$SpanName\"",
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -1767,7 +1767,22 @@
               "timeField": "createTime"
             }
           ],
-          "thresholds": [],
+          "thresholds": [
+            {
+              "colorMode": "critical",
+              "fill": true,
+              "line": true,
+              "op": "gt",
+              "value": 5
+            },
+            {
+              "colorMode": "warning",
+              "fill": true,
+              "line": true,
+              "op": "gt",
+              "value": 2
+            }
+          ],
           "timeFrom": null,
           "timeShift": null,
           "title": "Trace-Error",
@@ -1840,6 +1855,10 @@
             {
               "text": "children.tags.error",
               "value": "children.tags.error"
+            },
+            {
+              "text": "type",
+              "value": "type"
             }
           ],
           "datasource": "${DS_TRACE-ES}",
@@ -1977,7 +1996,7 @@
         "multi": false,
         "name": "SpanName",
         "options": [],
-        "query": "{\"find\": \"terms\", \"field\": \"name.keyword\",\"query\":\"app:'$App'\",\"cardinality\": {         \"field\": \"name.keyword\"       }}",
+        "query": "{\"find\": \"terms\", \"field\": \"name.keyword\",\"query\":\"app:\\\"$App\\\"\",\"cardinality\": {         \"field\": \"name.keyword\"       }}",
         "refresh": 2,
         "regex": "",
         "sort": 1,
@@ -2020,5 +2039,5 @@
   },
   "timezone": "",
   "title": "Zipkin-analyzer",
-  "version": 47
+  "version": 51
 }
