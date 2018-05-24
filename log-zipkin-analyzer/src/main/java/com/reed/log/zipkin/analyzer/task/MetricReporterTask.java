@@ -6,7 +6,10 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
 import com.codahale.metrics.MetricFilter;
@@ -34,6 +37,17 @@ public class MetricReporterTask {
 	private MetricSet metricSet;
 	@Autowired
 	private EsMetricResultService esResultService;
+	
+	/**
+	 * 自定义的任务线程池,避免默认单线程执行任务导致的任务无法执行问题
+	 * @return
+	 */
+	@Bean(name = "taskScheduler")
+    public TaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+        taskScheduler.setPoolSize(5);
+        return taskScheduler;
+    }
 
 	// send to es,每分钟执行
 	// @Scheduled(cron = "0 0/1 * * * ?")
