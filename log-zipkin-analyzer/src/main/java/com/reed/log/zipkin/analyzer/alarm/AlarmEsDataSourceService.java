@@ -68,9 +68,11 @@ public class AlarmEsDataSourceService extends AlarmBaseService<EsZipkin> impleme
 		// CardinalityAggregationBuilder agg =
 		// AggregationBuilders.cardinality("title-agg").field("title.keyword");
 		SearchQuery sq = new NativeSearchQueryBuilder().withQuery(queryBuilder).withPageable(page)
-				.addAggregation(AggregationBuilders.terms(aggName).field(field).subAggregation(AggregationBuilders
-						.topHits(top).explain(true).from(page.getPageNumber() * page.getPageSize()).size(1)))
+				.addAggregation(AggregationBuilders.terms(aggName).field(field)
+						.size((page.getPageNumber() + 1) * page.getPageSize())
+						.subAggregation(AggregationBuilders.topHits(top).explain(true).from(0).size(1)))
 				.build();
+		long totalCount = esAlarmTemplate.count(sq, AlarmItem.class);
 		r = (AggregatedPage<AlarmItem>) esAlarmTemplate.queryForPage(sq, AlarmItem.class, new SearchResultMapper() {
 			@SuppressWarnings({ "hiding", "unchecked" })
 			@Override
@@ -78,13 +80,17 @@ public class AlarmEsDataSourceService extends AlarmBaseService<EsZipkin> impleme
 					Pageable pageable) {
 				List<AlarmItem> values = new ArrayList<>();
 				Terms agg = response.getAggregations().get(aggName);
-				for (Terms.Bucket entry : agg.getBuckets()) {
+				long total = agg.getBuckets().size();
+				int start = pageable.getPageNumber() * pageable.getPageSize();
+				long end = (start + pageable.getPageSize() > total) ? total : start + pageable.getPageSize();
+				for (int i = start; i < end; i++) {
+					Terms.Bucket entry = agg.getBuckets().get(i);
 					TopHits topHits = entry.getAggregations().get(top);
 					for (SearchHit hit : topHits.getHits()) {
 						values.add((AlarmItem) hit.getSource());
 					}
 				}
-				return new AggregatedPageImpl<AlarmItem>((List<AlarmItem>) values);
+				return new AggregatedPageImpl<AlarmItem>((List<AlarmItem>) values, pageable, totalCount);
 			}
 		});
 
