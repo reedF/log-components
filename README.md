@@ -26,6 +26,8 @@ docker pull wurstmeister/zookeeper
 docker pull wurstmeister/kafka
 docker pull sheepkiller/kafka-manager
 docker pull grafana/grafana
+docker pull bringg/kibana-sentinl
+docker pull bitsensor/elastalert
 
 sudo sysctl -w vm.max_map_count=262144
 docker run -d --name zipkin -p 9411:9411 openzipkin/zipkin
@@ -37,6 +39,8 @@ docker run --name zk -d -p 2181:2181 -t wurstmeister/zookeeper
 docker run --name kafka -d -e KAFKA_ADVERTISED_HOST_NAME=192.168.59.103 -e KAFKA_ADVERTISED_PORT=9092 -e KAFKA_BROKER_ID=1 -e ZK=zk -e KAFKA_HEAP_OPTS="-Xms256m -Xms256m" -p 9092:9092 --link zk:zk -t wurstmeister/kafka
 docker run -d --name kf-m -p 9000:9000 -e ZK_HOSTS="192.168.59.103:2181" sheepkiller/kafka-manager
 docker run -d --name=grafana -p 3000:3000 -e "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel" grafana/grafana
+docker run -d --name sentinl -p 5601:5601 --link es:elasticsearch -e ELASTICSEARCH_URL=http://192.168.59.103:9200 bringg/kibana-sentinl
+docker run -d --name elastalert -p 3030:3030 --net="host" -e es_host=192.168.59.103 bitsensor/elastalert:latest
 
 
 # elasticsearch.yml如下：
