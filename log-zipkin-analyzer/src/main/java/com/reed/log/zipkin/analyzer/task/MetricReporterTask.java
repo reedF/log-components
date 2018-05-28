@@ -30,24 +30,24 @@ public class MetricReporterTask {
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	// 定时任务时间点
 	private static final String scheduler = "56 59 23 * * ?";
-
+	private static final String scheduler_es = "01 57 23 * * ?";
 	@Autowired
 	private MetricRegistry metrics;
 	@Autowired
 	private MetricSet metricSet;
 	@Autowired
 	private EsMetricResultService esResultService;
-	
+
 	/**
 	 * 自定义的任务线程池,避免默认单线程执行任务导致的任务无法执行问题
 	 * @return
 	 */
 	@Bean(name = "taskScheduler")
-    public TaskScheduler taskScheduler() {
-        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-        taskScheduler.setPoolSize(5);
-        return taskScheduler;
-    }
+	public TaskScheduler taskScheduler() {
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.setPoolSize(5);
+		return taskScheduler;
+	}
 
 	// send to es,每分钟执行
 	// @Scheduled(cron = "0 0/1 * * * ?")
@@ -61,8 +61,13 @@ public class MetricReporterTask {
 	// 每天23:59:56秒时执行
 	@Scheduled(cron = scheduler)
 	public void timerForReporter() {
-		timerForEs();
 		cleanMetrics();
+	}
+
+	// 每天23:57:01秒时执行,最后回收一次数据
+	@Scheduled(cron = scheduler_es)
+	public void timerForEnd() {
+		timerForEs();
 	}
 
 	private void cleanMetrics() {

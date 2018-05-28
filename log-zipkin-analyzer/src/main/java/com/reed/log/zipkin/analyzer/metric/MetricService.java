@@ -186,7 +186,8 @@ public class MetricService {
 	private void doSave(EsZipkin es) {
 		try {
 			if (es != null) {
-				List<EsZipkin> r = esZipkinRepository.findByTraceIdAndTypeAndApp(es.getTraceId(), es.getType(),es.getApp());
+				List<EsZipkin> r = esZipkinRepository.findByTraceIdAndTypeAndApp(es.getTraceId(), es.getType(),
+						es.getApp());
 				if (r != null && !r.isEmpty()) {
 					if (!r.stream().anyMatch(o -> o.getSpan().getId().equals(es.getSpan().getId()))) {
 						esZipkinRepository.save(es);
@@ -196,9 +197,13 @@ public class MetricService {
 				}
 			}
 		} catch (IndexNotFoundException | SearchPhaseExecutionException e) {
-			//由于使用了findByTraceIdAndTypeAndApp在save前查询索引,会导致索引不存在时出现运行时异常，从而导致stream task线程退出，故需处理异常，保证消费
-			//handle runtime exception for index not exist
+			// 由于使用了findByTraceIdAndTypeAndApp在save前查询索引,会导致索引不存在时出现运行时异常，从而导致stream
+			// task线程退出，故需处理异常，保证消费
+			// handle runtime exception for index not exist
 			logger.error("No Trace index:{},{},{}", e.getIndex(), e.getMessage(), e.getDetailedMessage());
+			esZipkinRepository.index(es);
+		} catch (Exception e) {
+			logger.error("Save Trace ERROR:{},{}", e.getMessage(), e.getCause());
 			esZipkinRepository.index(es);
 		}
 	}

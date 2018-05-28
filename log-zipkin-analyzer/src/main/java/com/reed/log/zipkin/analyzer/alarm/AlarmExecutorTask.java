@@ -53,7 +53,7 @@ public class AlarmExecutorTask {
 			logger.info("=========Alarm task done in current time : {},item Num is:{} =========",
 					sdf.format(new Date()), size);
 		} catch (Exception e) {
-			logger.error("=========Alarm task ERROR:{} ==========", e.getCause());
+			logger.error("=========Alarm task ERROR:{},{} ==========", e.getMessage(), e.getCause());
 		}
 	}
 
