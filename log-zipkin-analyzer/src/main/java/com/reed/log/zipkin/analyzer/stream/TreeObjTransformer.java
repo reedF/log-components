@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Transformer;
@@ -56,6 +57,13 @@ public class TreeObjTransformer implements Transformer<String, String, KeyValue<
 		if (data != null && !data.isEmpty()) {
 			for (ZipkinLog msg : data) {
 				if (msg != null && (msg.getTags() == null || !msg.getTags().containsKey(TagsContents.SQL))) {
+					// make http method name
+					if (msg.getTags() != null && msg.getTags().containsKey(TagsContents.HTTP_PATH)) {
+						String path = msg.getTags().get(TagsContents.HTTP_PATH);
+						if (StringUtils.isNotBlank(path)) {
+							msg.setName(path);
+						}
+					}
 					key = msg.getTraceId();
 					// String app = msg.getLocalEndpoint() != null ?
 					// msg.getLocalEndpoint().getServiceName() : null;
