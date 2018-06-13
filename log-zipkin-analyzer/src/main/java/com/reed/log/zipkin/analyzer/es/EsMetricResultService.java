@@ -163,8 +163,8 @@ public class EsMetricResultService {
 		Counter c = metricService.getMetric(error, Counter.class);
 		if (m != null) {
 			o.setTotal(m.getCount());
-			o.setQps(m.getMeanRate());
-			o.setQpsMax(m.getMeanRate());
+			o.setQps(m.getFifteenMinuteRate());
+			o.setQpsMax(m.getFifteenMinuteRate());
 		}
 		if (h != null) {
 			o.setCost(h.getSnapshot().getMean());
