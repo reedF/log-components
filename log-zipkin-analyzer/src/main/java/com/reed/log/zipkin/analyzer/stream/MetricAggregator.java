@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.kafka.streams.kstream.Aggregator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +23,7 @@ import com.reed.log.zipkin.analyzer.tree.TreeParser;
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class MetricAggregator implements Aggregator<String, TreeObj, MetricObj> {
+	public static Logger logger = LoggerFactory.getLogger(MetricAggregator.class);
 	@Autowired
 	private MetricService metricService;
 
@@ -29,8 +32,12 @@ public class MetricAggregator implements Aggregator<String, TreeObj, MetricObj> 
 
 	@Override
 	public MetricObj apply(String key, TreeObj value, MetricObj aggregate) {
-		metric(value);
-		cache(value);
+		try {
+			metric(value);
+			cache(value);
+		} catch (Exception e) {
+			logger.error("==========Kafka Stream Thread ERROR:{},{}============", e.getClass().getName(), e.getCause());
+		}
 		return null;
 	}
 

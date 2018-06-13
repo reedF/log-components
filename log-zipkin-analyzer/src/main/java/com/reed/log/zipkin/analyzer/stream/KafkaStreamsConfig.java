@@ -83,6 +83,7 @@ public class KafkaStreamsConfig {
 		props.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, consumerNum);
 		props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
 		props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+		// 可控制KStream向topic发送数据的时间频率，默认30s
 		props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, windowSize);
 		// cunsumer setting
 		// 注：某些ConsumerConfig对kafka-stream启动的RestoreConsumer（消费store类topic）的消费者配置无效，参见{@link #StreamsConfig.getRestoreConsumerConfigs}
@@ -254,7 +255,7 @@ public class KafkaStreamsConfig {
 		//
 		;
 
-		out.print();
+		//out.print();
 		return stream;
 	}
 
