@@ -3,8 +3,8 @@ package com.reed.log.zipkin.analyzer.redis;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,8 +36,11 @@ public class MetricsCacheService {
 		if (app != null) {
 			template.boundSetOps(CACHE).add(app);
 			String key = genKey(app);
-			template.boundSetOps(key).add(JSON.toJSONString(value));
-			template.expireAt(key, getExpireDate());
+			// 去重
+			if (getDistinct(value)) {
+				template.boundSetOps(key).add(JSON.toJSONString(value));
+				template.expireAt(key, getExpireDate());
+			}
 		}
 	}
 
@@ -165,5 +168,29 @@ public class MetricsCacheService {
 		calendar.set(Calendar.MILLISECOND, 0);
 		calendar.add(Calendar.DAY_OF_MONTH, 1);
 		return calendar.getTime();
+	}
+
+	/**
+	 * 去重
+	 * @param map
+	 * @param t
+	 * @return
+	 */
+	private boolean getDistinct(TreeObj t) {
+		boolean r = true;
+		if (t != null) {
+			String key = CACHE + POINT + "sets" + POINT + t.getApp();
+			Set<String> all = template.boundSetOps(key).members();
+			all = all == null ? new HashSet<>() : all;
+			List<String> nodes = t.showAllNodes();
+			if (all.containsAll(nodes)) {
+				r = false;
+			} else {
+				all.addAll(nodes);
+				all.stream().forEach(v -> template.boundSetOps(key).add(v));
+				template.expireAt(key, getExpireDate());
+			}
+		}
+		return r;
 	}
 }

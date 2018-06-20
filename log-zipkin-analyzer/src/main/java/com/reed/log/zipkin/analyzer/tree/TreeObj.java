@@ -116,7 +116,7 @@ public class TreeObj<T> implements Serializable {
 	public List<String> showAllNodes() {
 		List<String> r = new ArrayList<>();
 		if (this != null) {
-			r.add(this.name);
+			r.add(this.app + "==" + this.name);
 			if (this.getChildList() != null && !this.getChildList().isEmpty()) {
 				for (TreeObj t : this.getChildList()) {
 					r.addAll(t.showAllNodes());
