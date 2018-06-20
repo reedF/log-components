@@ -128,7 +128,9 @@ public class EsMetricResultService {
 					r.setName(t.getName());
 					r.setSpans(new ArrayList<>());
 					getMetrics(t, null, r.getSpans());
-					list.add(r);
+					if (!r.getSpans().isEmpty()) {
+						list.add(r);
+					}
 				}
 			}
 		}
