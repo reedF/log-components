@@ -204,7 +204,7 @@ public class EsMetricResultService {
 					for (MetricObj m : spans) {
 						if (m != null && m.getPid() > 0) {
 							EsMetricResult child = new EsMetricResult();
-							child.setId(m.getId());
+							child.setId(System.nanoTime());
 							List<MetricObj> ms = new ArrayList<>();
 							ms.add(m);
 							// String[] strs =
