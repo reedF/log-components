@@ -1,18 +1,15 @@
 package com.reed.log.zipkin.analyzer.es;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -94,6 +91,8 @@ public class EsMetricResultService {
 		if (r != null && !r.isEmpty()) {
 			esRepository.saveAll(r);
 		}
+		// save children spans
+		//saveChildrenSpans(r);
 		return r.size();
 	}
 
@@ -189,6 +188,45 @@ public class EsMetricResultService {
 				Double d = cacheService.addMaxValue(cost, o.getCostMax().doubleValue());
 				o.setCostMax(d == null ? null : d.longValue());
 			}
+		}
+	}
+
+	/**
+	 * 保存子级span统计数据
+	 * @param lists
+	 */
+	private void saveChildrenSpans(List<EsMetricResult> lists) {
+		if (lists != null && lists.size() > 0) {
+			List<EsMetricResult> children = new ArrayList<>();
+			for (EsMetricResult r : lists) {
+				List<MetricObj> spans = r.getSpans();
+				if (spans != null && spans.size() > 0) {
+					for (MetricObj m : spans) {
+						if (m != null && m.getPid() > 0) {
+							EsMetricResult child = new EsMetricResult();
+							child.setId(m.getId());
+							List<MetricObj> ms = new ArrayList<>();
+							ms.add(m);
+							// String[] strs =
+							// m.getAppName().split(MetricService.AT);
+							child.setApp(m.getAppName());
+							// if (m.getAppName().contains(MetricService.AT)) {
+							// child.setServer(strs[1]);
+							// }
+							if (StringUtils.isNotBlank(m.getName()) && m.getName().contains(MetricService.M)) {
+								String[] names = m.getName().split("\\|\\|");
+								child.setName(names[1]);
+							} else {
+								child.setName(m.getName());
+							}
+
+							child.setSpans(ms);
+							children.add(child);
+						}
+					}
+				}
+			}
+			esRepository.saveAll(children);
 		}
 	}
 }
