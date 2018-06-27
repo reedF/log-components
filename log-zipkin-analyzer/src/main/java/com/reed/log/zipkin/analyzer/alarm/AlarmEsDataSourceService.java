@@ -20,8 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.ScrolledPage;
 import org.springframework.data.elasticsearch.core.SearchResultMapper;
 import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
 import org.springframework.data.elasticsearch.core.aggregation.impl.AggregatedPageImpl;
@@ -150,6 +152,29 @@ public class AlarmEsDataSourceService extends AlarmBaseService<EsZipkin> impleme
 			r = dateFormat.format(new Date(timestamp));
 		}
 		return r;
+	}
+	
+	/**
+	 * Scroll方式加载数据，适用于大数据量加载
+	 * @param queryBuilder
+	 * @return
+	 */
+	public List<AlarmItem> getAllDataByScroll(QueryBuilder queryBuilder) {
+		int size = 5000;
+		long time = System.currentTimeMillis();
+		List<AlarmItem> data = new ArrayList<>();
+		SearchQuery sq = new NativeSearchQueryBuilder().withQuery(queryBuilder).withPageable(PageRequest.of(0, size))
+				.build();
+		ScrolledPage<AlarmItem> scroll = (ScrolledPage<AlarmItem>) esAlarmTemplate.startScroll(time, sq,
+				AlarmItem.class);
+		while (scroll.hasContent()) {
+			data.addAll(scroll.getContent());
+			scroll = (ScrolledPage<AlarmItem>) esAlarmTemplate.continueScroll(scroll.getScrollId(), time,
+					AlarmItem.class);
+		}
+		esAlarmTemplate.clearScroll(scroll.getScrollId());
+
+		return data;
 	}
 
 //	/**
