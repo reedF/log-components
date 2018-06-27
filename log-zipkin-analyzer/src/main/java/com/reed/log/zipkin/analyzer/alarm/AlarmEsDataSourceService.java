@@ -152,4 +152,35 @@ public class AlarmEsDataSourceService extends AlarmBaseService<EsZipkin> impleme
 		return r;
 	}
 
+//	/**
+//	 * 聚合查询
+//	 * @param m
+//	 * @param app
+//	 * @param ids
+//	 * @return
+//	 */
+//	private MetricObj getAggData(MetricObj m, String app, Set<Long> ids) {
+//		QueryBuilder queryBuilder = QueryBuilders.boolQuery().must(QueryBuilders.termQuery(appFileld, app))
+//				.must(QueryBuilders.termsQuery(spanIdFileld, ids));
+//		SearchQuery sq = new NativeSearchQueryBuilder().withQuery(queryBuilder)
+//				.addAggregation(AggregationBuilders.avg(agg + qpsFileld).field(qpsFileld))
+//				.addAggregation(AggregationBuilders.avg(agg + costFileld).field(costFileld))
+//				//
+//				.build();
+//		m.setAppName(app);
+//		esAlarmTemplate.query(sq, new ResultsExtractor<MetricObj>() {
+//			@Override
+//			public MetricObj extract(SearchResponse response) {
+//				Aggregations aggs = response.getAggregations();
+//				if (aggs != null) {
+//					Avg avgQps = aggs.get(agg + qpsFileld);
+//					m.setQps(avgQps.getValue());
+//					Avg avgCost = aggs.get(agg + costFileld);
+//					m.setCost(avgCost.getValue());
+//				}
+//				return m;
+//			}
+//		});
+//		return m;
+//	}
 }
