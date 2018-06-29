@@ -1,14 +1,17 @@
 package com.reed.log.test.metric;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.elasticsearch.metrics.ElasticsearchReporter;
 
 import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
+import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
@@ -25,10 +28,11 @@ public class MetricTest {
 
 		startReport();
 		// startEsReport();
+		// testCount();
 		//testMeter();
-		//testQps();
-		testCost();
-		
+		 testQps();
+		// testCost();
+
 	}
 
 	private static void startReport() {
@@ -77,19 +81,23 @@ public class MetricTest {
 	}
 
 	private static void testMeter() {
-		// metrics:事件总数，平均速率,包含1分钟，5分钟，15分钟的速率
-		Meter requests = metrics.meter("requests");
+		// metrics:事件总数，平均速率,包含1分钟，5分钟，15分钟的速率		
 		while (true) {
+			Meter requests = metrics.meter("requests");
 			// 计数一次
 			requests.mark();
 			waitSeconds(rn.nextInt(500));
+			// rest
+			restMetric();
+
 		}
 
 	}
 
 	private static void testQps() {
-		Timer timer = metrics.timer(MetricRegistry.name(MetricTest.class, "calculation-duration"));
+		//Timer timer = metrics.timer(MetricRegistry.name(MetricTest.class, "calculation-duration"));
 		while (true) {
+			Timer timer = metrics.timer(MetricRegistry.name(MetricTest.class, "calculation-duration"));
 			// 统计开始
 			final Timer.Context context = timer.time();
 			int sleepTime = rn.nextInt(2000);
@@ -97,6 +105,8 @@ public class MetricTest {
 			System.out.println("处理耗时:" + sleepTime);
 			// 统计结束
 			context.stop();
+			// rest
+			restMetric();
 		}
 	}
 
@@ -108,7 +118,36 @@ public class MetricTest {
 			waitSeconds(sleepTime);
 			cost.update(sleepTime);
 		}
+	}
 
+	private static void testCount() {
+		Counter c = metrics.counter("count");
+		while (true) {
+			// 统计开始
+			int sleepTime = rn.nextInt(2000);
+			waitSeconds(sleepTime);
+			c.inc();
+			// rest
+			restMetric();
+		}
+	}
+
+	private static void restMetric() {
+		int restTag = 43;
+		Map<String, Metric> map = metrics.getMetrics();
+		Meter requests = (Meter) map.get("requests");
+		Counter c = (Counter) map.get("count");
+		Timer t = (Timer)map.get(MetricRegistry.name(MetricTest.class, "calculation-duration"));
+		if (requests != null && requests.getCount() > restTag) {
+			metrics.remove("requests");
+		}
+		if (c != null && c.getCount() > restTag) {
+			c.dec(c.getCount());
+		}
+		
+		if (t != null && t.getCount() > restTag) {
+			metrics.remove(MetricRegistry.name(MetricTest.class, "calculation-duration"));
+		}
 	}
 
 }
