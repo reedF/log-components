@@ -16,7 +16,7 @@ public class MetricObj extends BaseObj {
 	private String appName;
 
 	private String name;
-
+	//采集周期内的请求数
 	private Long total;
 
 	private Double qps;
@@ -30,7 +30,7 @@ public class MetricObj extends BaseObj {
 	private Double costTp95;
 	// 平均耗时极值，单位微秒
 	private Long costMax;
-	// 错误数
+	// 采集周期内的错误数
 	private long errors;
 	// 错误率(%)
 	private Double errorRate = (this.total != null && this.total > 0) ? this.errors / this.total.doubleValue() * 100.00

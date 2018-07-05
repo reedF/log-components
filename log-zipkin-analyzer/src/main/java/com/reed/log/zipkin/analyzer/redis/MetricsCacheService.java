@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -135,15 +136,15 @@ public class MetricsCacheService {
 		if (maxTemplate.hasKey(key)) {
 			Double old = maxTemplate.opsForValue().get(key);
 			if (value > old) {
-				maxTemplate.opsForValue().set(key, value);
+				maxTemplate.opsForValue().set(key, value, 15, TimeUnit.MINUTES);
 			} else {
 				value = old;
 			}
 		} else {
-			maxTemplate.opsForValue().set(key, value);
+			maxTemplate.opsForValue().set(key, value, 15, TimeUnit.MINUTES);
 		}
 		// set expire time to 00:00:00
-		maxTemplate.expireAt(key, getExpireDate());
+		// maxTemplate.expireAt(key, getExpireDate());
 		return value;
 	}
 

@@ -85,7 +85,11 @@ public class MetricAggregator implements Aggregator<String, TreeObj, MetricObj> 
 		t.setApp(value.getApp());
 		t.setName(value.getName());
 		t.setParentId(value.getParentId());
-		list.add(t);
+		//去重
+		if (!list.stream().anyMatch(n -> n.getApp().equals(value.getApp()) && n.getName().equals(value.getName())
+				&& n.getParentId().equals(value.getParentId()))) {
+			list.add(t);
+		}
 		if (value.getChildList() != null && !value.getChildList().isEmpty()) {
 			value.getChildList().forEach((v) -> {
 				convert((TreeObj) v, list);

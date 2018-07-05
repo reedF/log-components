@@ -185,8 +185,8 @@ public class EsMetricResultService {
 				o.setQpsMax(cacheService.addMaxValue(qps, o.getQpsMax()));
 			}
 			if (o.getCostMax() != null) {
-				Double d = cacheService.addMaxValue(cost, o.getCostMax().doubleValue());
-				o.setCostMax(d == null ? null : d.longValue());
+				//Double d = cacheService.addMaxValue(cost, o.getCostMax().doubleValue());
+				//o.setCostMax(d == null ? null : d.longValue());
 			}
 		}
 	}

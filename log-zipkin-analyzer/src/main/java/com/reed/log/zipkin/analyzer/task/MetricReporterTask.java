@@ -2,6 +2,7 @@ package com.reed.log.zipkin.analyzer.task;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +13,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
+import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.MetricSet;
 import com.reed.log.zipkin.analyzer.es.EsMetricResultService;
+import com.reed.log.zipkin.analyzer.metric.MetricResetFilter;
 
 /**
  * 刷新统计报告，每天零点重置count
@@ -54,6 +57,7 @@ public class MetricReporterTask {
 	@Scheduled(cron = "${metric.result.send.schedule}")
 	public void timerForEs() {
 		int r = esResultService.saveAllCurrentResult();
+		resetMetrics();
 		logger.info("=========Send Metric Result to ES current time : {},Data size : {}=========",
 				sdf.format(new Date()), r);
 	}
@@ -77,5 +81,16 @@ public class MetricReporterTask {
 		metrics.removeMatching(MetricFilter.ALL);
 		logger.info("=========Refresh Reporter current time : {} =========", sdf.format(new Date()));
 	}
-
+	private void resetMetrics() {
+		MetricResetFilter filter = new MetricResetFilter();
+		metrics.removeMatching(filter);
+		if (metricSet != null) {
+			Map<String, Metric> m = metricSet.getMetrics();
+			m.forEach((k, v) -> {
+				if (filter.checkMetric(v)) {
+					m.remove(k);
+				}
+			});
+		}
+	}
 }
