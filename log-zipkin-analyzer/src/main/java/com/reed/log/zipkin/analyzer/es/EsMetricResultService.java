@@ -92,7 +92,7 @@ public class EsMetricResultService {
 			esRepository.saveAll(r);
 		}
 		// save children spans
-		//saveChildrenSpans(r);
+		// saveChildrenSpans(r);
 		return r.size();
 	}
 
@@ -144,12 +144,14 @@ public class EsMetricResultService {
 			o.setAppName(t.app);
 			o.setName(t.name);
 			setMetricValue(o);
+			// 当前span存在统计值（表明有新请求）时才记录，并递归查询其子span，否则表明此span无新请求，不记录且也不可能存在对子span的请求
 			if (o.getQps() != null) {
 				r.add(o);
-			}
-			if (t.getChildList() != null && !t.getChildList().isEmpty()) {
-				for (TreeObj v : (List<TreeObj>) t.getChildList()) {
-					getMetrics(v, o, r);
+				// child node
+				if (t.getChildList() != null && !t.getChildList().isEmpty()) {
+					for (TreeObj v : (List<TreeObj>) t.getChildList()) {
+						getMetrics(v, o, r);
+					}
 				}
 			}
 		}
@@ -185,8 +187,8 @@ public class EsMetricResultService {
 				o.setQpsMax(cacheService.addMaxValue(qps, o.getQpsMax()));
 			}
 			if (o.getCostMax() != null) {
-				//Double d = cacheService.addMaxValue(cost, o.getCostMax().doubleValue());
-				//o.setCostMax(d == null ? null : d.longValue());
+				// Double d = cacheService.addMaxValue(cost,o.getCostMax().doubleValue());
+				// o.setCostMax(d == null ? null : d.longValue());
 			}
 		}
 	}
