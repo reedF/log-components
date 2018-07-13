@@ -24,14 +24,14 @@ public class EsZipkin extends BaseObj {
 	@Id
 	private Long id = System.nanoTime();
 
-	@Field(type = FieldType.keyword, fielddata = true)
+	@Field(type = FieldType.keyword)
 	private String app;
 
 	// refer to EsTypeEnum
-	@Field(type = FieldType.keyword, fielddata = true)
+	@Field(type = FieldType.keyword)
 	private String type;
 
-	@Field(type = FieldType.keyword, fielddata = true)
+	@Field(type = FieldType.keyword)
 	private String traceId;
 
 	@Field(type = FieldType.Object)

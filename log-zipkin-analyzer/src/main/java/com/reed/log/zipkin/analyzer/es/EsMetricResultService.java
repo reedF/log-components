@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.stereotype.Service;
 
 import com.codahale.metrics.Counter;
@@ -33,6 +34,8 @@ public class EsMetricResultService {
 	private MetricService metricService;
 	@Autowired
 	private EsZipkinRepository esZipkinRepository;
+	@Autowired
+	private ElasticsearchTemplate esTemplate;
 
 	public List<EsMetricResult> findAllCurrentResult() {
 		List<EsMetricResult> list = new ArrayList<>();
@@ -89,6 +92,11 @@ public class EsMetricResultService {
 	public int saveAllCurrentResult() {
 		List<EsMetricResult> r = findAllCurrentResult();
 		if (r != null && !r.isEmpty()) {
+			if (!esTemplate.indexExists(EsMetricResult.class)) {
+				esTemplate.createIndex(EsMetricResult.class);
+			}
+			// create index mapping
+			esTemplate.putMapping(EsMetricResult.class);
 			esRepository.saveAll(r);
 		}
 		// save children spans
@@ -187,7 +195,8 @@ public class EsMetricResultService {
 				o.setQpsMax(cacheService.addMaxValue(qps, o.getQpsMax()));
 			}
 			if (o.getCostMax() != null) {
-				// Double d = cacheService.addMaxValue(cost,o.getCostMax().doubleValue());
+				// Double d =
+				// cacheService.addMaxValue(cost,o.getCostMax().doubleValue());
 				// o.setCostMax(d == null ? null : d.longValue());
 			}
 		}
