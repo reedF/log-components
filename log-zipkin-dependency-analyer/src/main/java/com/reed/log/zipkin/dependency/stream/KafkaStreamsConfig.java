@@ -87,7 +87,7 @@ public class KafkaStreamsConfig {
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "deprecation" })
-	@Bean
+	//@Bean
 	public KStream<String, String> kStreamV1TestZipkinDepdencyLink(StreamsBuilder kStreamBuilder) {
 		// StateStoreSupplier myStore =
 		// Stores.create(storesName).withStringKeys().withStringValues().inMemory().build();
@@ -117,7 +117,7 @@ public class KafkaStreamsConfig {
 	
 	
 	@SuppressWarnings("rawtypes")
-	//@Bean
+	@Bean
 	public KStream<String, String> kStreamV1(StreamsBuilder kStreamBuilder, MetricAggregator aggregator) {
 		StoreBuilder builder = Stores.keyValueStoreBuilder(Stores.inMemoryKeyValueStore(storesName), Serdes.String(),
 				Serdes.Bytes());

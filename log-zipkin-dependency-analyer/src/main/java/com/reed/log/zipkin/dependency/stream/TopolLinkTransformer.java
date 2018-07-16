@@ -1,6 +1,5 @@
 package com.reed.log.zipkin.dependency.stream;
 
-import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,15 +19,14 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.reed.log.zipkin.dependency.link.TopolLink;
+import com.reed.log.zipkin.dependency.link.TopolLinker;
 import com.reed.log.zipkin.dependency.utils.TagsContents;
 
 import scala.Tuple2;
-import zipkin2.DependencyLink;
 import zipkin2.Span;
 import zipkin2.codec.SpanBytesDecoder;
-import zipkin2.internal.DependencyLinker;
+import zipkin2.codec.SpanBytesEncoder;
 
 /**
  *
@@ -40,6 +38,7 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 	private ProcessorContext context;
 	private KeyValueStore<String, Bytes> state;
 	private SpanBytesDecoder spanBytesDecoder = SpanBytesDecoder.JSON_V2;
+	private SpanBytesEncoder spanBytesEncoder = SpanBytesEncoder.JSON_V2;
 
 	@Override
 	public void init(ProcessorContext context) {
@@ -86,12 +85,13 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 				}
 			}
 		}
+
 		if (sameTraceId != null && !sameTraceId.isEmpty()) {
 			for (Map.Entry<String, Set<Span>> entry : sameTraceId.entrySet()) {
 				if (entry != null && entry.getValue() != null) {
-					DependencyLinker linker = new DependencyLinker();
+					TopolLinker linker = new TopolLinker();
 					linker.putTrace(entry.getValue().iterator());
-					List<DependencyLink> links = linker.link();
+					List<TopolLink> links = linker.link();
 					if (links != null) {
 						links.forEach(v -> {
 							if (v != null) {
@@ -108,16 +108,18 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 	}
 
 	/**
-	 * 定时发送
+	 * 定时
 	 */
 	@Override
 	public KeyValue<String, TopolLink> punctuate(long timestamp) {
+
 		return null;
 	}
 
 	@Override
 	public void close() {
-
+		this.state.close();
 	}
+
 
 }

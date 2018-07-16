@@ -1,9 +1,9 @@
 package com.reed.log.zipkin.dependency.stream;
 
-import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -14,19 +14,20 @@ import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.reed.log.zipkin.dependency.utils.TagsContents;
 
 import scala.Tuple2;
 import zipkin2.DependencyLink;
 import zipkin2.Span;
 import zipkin2.codec.SpanBytesDecoder;
+import zipkin2.codec.SpanBytesEncoder;
 import zipkin2.internal.DependencyLinker;
 
 /**
@@ -39,6 +40,7 @@ public class DependencyTransformer implements Transformer<String, String, KeyVal
 	private ProcessorContext context;
 	private KeyValueStore<String, Bytes> state;
 	private SpanBytesDecoder spanBytesDecoder = SpanBytesDecoder.JSON_V2;
+	private SpanBytesEncoder spanBytesEncoder = SpanBytesEncoder.JSON_V2;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -70,6 +72,7 @@ public class DependencyTransformer implements Transformer<String, String, KeyVal
 
 		if (data != null && !data.isEmpty()) {
 			sameTraceId = new HashMap<>();
+			//sameTraceId = getAllFromStore();
 			for (Span msg : data) {
 				if (msg != null) {
 					// make http method name
@@ -87,6 +90,8 @@ public class DependencyTransformer implements Transformer<String, String, KeyVal
 			}
 		}
 		if (sameTraceId != null && !sameTraceId.isEmpty()) {
+			//save in store时，会有重复数据
+			//saveInStore(sameTraceId);
 			for (Map.Entry<String, Set<Span>> entry : sameTraceId.entrySet()) {
 				if (entry != null && entry.getValue() != null) {
 					DependencyLinker linker = new DependencyLinker();
@@ -118,17 +123,41 @@ public class DependencyTransformer implements Transformer<String, String, KeyVal
 
 	@Override
 	public void close() {
-
+		state.close();
 	}
 
-	private List<DependencyLink> initFromStore(String key) {
-		List<DependencyLink> r = null;
-		if (this.state.get(key) != null) {
-			Type type = new TypeReference<List<DependencyLink>>() {
-			}.getType();
-			r = JSON.parseObject(this.state.get(key).get(), type);
+	/**
+	 * 保存同一个trace内的span集合
+	 * @param sameTraceId
+	 */
+	private void saveInStore(Map<String, Set<Span>> sameTraceId) {
+		if (sameTraceId != null) {
+			for (Map.Entry<String, Set<Span>> entry : sameTraceId.entrySet()) {
+				if (entry != null) {
+					this.state.put(entry.getKey(),
+							Bytes.wrap(spanBytesEncoder.encodeList(new ArrayList<>(entry.getValue()))));
+				}
+			}
 		}
-		return r;
+	}
+
+	/**
+	 * 从store内获取缓存的合并同一个trace内的span集合
+	 * @return
+	 */
+	private Map<String, Set<Span>> getAllFromStore() {
+		Map<String, Set<Span>> map = new HashMap<>();
+		KeyValueIterator<String, Bytes> iterator = this.state.all();
+		if (iterator != null) {
+			iterator.forEachRemaining(entry -> {
+				if (entry != null) {
+					Set<Span> sets = new HashSet<>();
+					spanBytesDecoder.decodeList(entry.value.get(), sets);
+					map.put(entry.key, sets);
+				}
+			});
+		}
+		return map;
 	}
 
 }
