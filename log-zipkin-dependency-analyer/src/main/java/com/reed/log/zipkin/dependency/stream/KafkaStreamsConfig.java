@@ -127,13 +127,7 @@ public class KafkaStreamsConfig {
 		KStream<String, String> out = stream
 				// [(k,v),(k,v),(k,v)...] to DependencyLink(k,v) key is traceId
 				.transform(() -> new TopolLinkTransformer(), storesName)
-				// change key
-				// .selectKey((k, v) -> v.getApp() + M + v.getName())
-				// .groupByKey(Serialized.with(Serdes.String(), new
-				// JsonSerde<>(TreeObj.class)))
-				// .aggregate(() -> null, aggregator, new
-				// JsonSerde<>(MetricObj.class), storesName + "-agg")
-				// .peek((k, v) -> aggregator.apply(null, v, null))
+				.peek((k, v) -> aggregator.apply(null, v, null))
 				// .toStream()
 				.mapValues(v -> v.toString())
 		//

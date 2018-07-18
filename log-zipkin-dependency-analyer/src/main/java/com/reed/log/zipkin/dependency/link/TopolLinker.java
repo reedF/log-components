@@ -22,6 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.reed.log.zipkin.dependency.utils.TagsContents;
+
 import zipkin2.Span;
 import zipkin2.Span.Kind;
 import zipkin2.internal.Nullable;
@@ -40,6 +44,14 @@ public final class TopolLinker {
 	private final Map<Pair, Long> callCounts = new LinkedHashMap<>();
 	private final Map<Pair, Long> errorCounts = new LinkedHashMap<>();
 	private final Map<Pair, Double> costMean = new LinkedHashMap<>();
+	// 分隔符,child=localServceName + "|" + name
+	public static final String LINE = "|";
+	// 分隔符, node name = traceType + ":" + url
+	public static final String TRACETYPETAG = ":";
+	// DB操作标识
+	public static final String DB_READ = "DB-READ";
+
+	public static final String DB_WRITE = "DB-WRITE";
 
 	public TopolLinker() {
 		this(Logger.getLogger(TopolLinker.class.getName()));
@@ -127,8 +139,8 @@ public final class TopolLinker {
 				continue;
 			}
 
-			String serviceName = currentSpan.localServiceName();
-			String remoteServiceName = currentSpan.remoteServiceName();
+			String serviceName = genNodeName(currentSpan, true);
+			String remoteServiceName = genNodeName(currentSpan, false);
 			if (kind == null) {
 				// Treat unknown type of span as a client span if we know both
 				// sides
@@ -181,7 +193,7 @@ public final class TopolLinker {
 
 			Span rpcAncestor = findRpcAncestor(current);
 			String rpcAncestorName;
-			if (rpcAncestor != null && (rpcAncestorName = rpcAncestor.localServiceName()) != null) {
+			if (rpcAncestor != null && (rpcAncestorName = genNodeName(rpcAncestor, true)) != null) {
 				// Some users accidentally put the remote service name on client
 				// annotations.
 				// Check for this and backfill a link from the nearest remote to
@@ -218,6 +230,36 @@ public final class TopolLinker {
 			addLink(parent, child, isError, duration);
 		}
 		return this;
+	}
+
+	String genNodeName(Span span, boolean islocal) {
+		String s = null;
+		if (span != null) {
+			if (islocal) {
+				s = span.localServiceName();
+			} else {
+				s = span.remoteServiceName();
+			}
+			if (StringUtils.isNotBlank(s) && span.tags() != null) {
+				String traceType = span.tags().get(TagsContents.TRACE_TYPE);
+				if (!span.tags().containsKey(TagsContents.SQL)) {
+					s = s + LINE + traceType + TRACETYPETAG + span.name();
+				} else {
+					// 针对DB类型的span，每次name不同（select,update,insert等），使用DB_*，统一name为数据库操作
+					String sql = span.name();
+					if (sql != null) {
+						sql = sql.toLowerCase();
+						if (sql.startsWith("update") || sql.startsWith("insert")) {
+							sql = DB_WRITE;
+						} else {
+							sql = DB_READ;
+						}
+					}
+					s = s + LINE + traceType + TRACETYPETAG + sql;
+				}
+			}
+		}
+		return s;
 	}
 
 	Span findRpcAncestor(Node<Span> current) {

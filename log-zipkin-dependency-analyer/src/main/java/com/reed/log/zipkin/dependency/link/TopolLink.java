@@ -33,6 +33,10 @@ public class TopolLink implements Serializable {
 		return child;
 	}
 
+	public String name() {
+		return name;
+	}
+
 	/** total traced calls made from {@link #parent} to {@link #child} */
 	public long callCount() {
 		return callCount;
@@ -56,7 +60,7 @@ public class TopolLink implements Serializable {
 	}
 
 	public static final class Builder {
-		String parent, child;
+		String parent, child, name;
 		long callCount, errorCount;
 		double qps, cost;
 
@@ -66,6 +70,7 @@ public class TopolLink implements Serializable {
 		Builder(TopolLink source) {
 			this.parent = source.parent;
 			this.child = source.child;
+			this.name = source.name;
 			this.callCount = source.callCount;
 			this.errorCount = source.errorCount;
 			this.qps = source.qps;
@@ -83,6 +88,13 @@ public class TopolLink implements Serializable {
 			if (child == null)
 				throw new NullPointerException("child == null");
 			this.child = child.toLowerCase(Locale.ROOT);
+			return this;
+		}
+
+		public Builder name(String name) {
+			if (name == null)
+				throw new NullPointerException("name == null");
+			this.name = name.toLowerCase(Locale.ROOT);
 			return this;
 		}
 
@@ -126,13 +138,14 @@ public class TopolLink implements Serializable {
 	// clutter below mainly due to difficulty working with Kryo which cannot
 	// handle AutoValue subclass
 	// See https://github.com/openzipkin/zipkin/issues/1879
-	final String parent, child;
+	final String parent, child, name;
 	final long callCount, errorCount;
 	final double qps, cost;
 
 	TopolLink(Builder builder) {
 		parent = builder.parent;
 		child = builder.child;
+		name = builder.name;
 		callCount = builder.callCount;
 		errorCount = builder.errorCount;
 		qps = builder.qps;
@@ -146,8 +159,9 @@ public class TopolLink implements Serializable {
 		if (!(o instanceof TopolLink))
 			return false;
 		TopolLink that = (TopolLink) o;
-		return (parent.equals(that.parent)) && (child.equals(that.child)) && (callCount == that.callCount)
-				&& (errorCount == that.errorCount) && (cost == that.cost) && (qps == that.qps);
+		return (parent.equals(that.parent)) && (child.equals(that.child)) && (name.equals(that.name))
+				&& (callCount == that.callCount) && (errorCount == that.errorCount) && (cost == that.cost)
+				&& (qps == that.qps);
 	}
 
 	@Override
@@ -157,6 +171,8 @@ public class TopolLink implements Serializable {
 		h ^= parent.hashCode();
 		h *= 1000003;
 		h ^= child.hashCode();
+		h *= 1000003;
+		h ^= name.hashCode();
 		h *= 1000003;
 		h ^= (int) ((callCount >>> 32) ^ callCount);
 		h *= 1000003;

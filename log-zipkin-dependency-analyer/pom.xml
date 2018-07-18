@@ -1,14 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.reed.log.zipkin</groupId>
-  <artifactId>log-zipkin-dependency-analyer</artifactId>
-  
-  	<properties>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.reed.log.zipkin</groupId>
+	<artifactId>log-zipkin-dependency-analyer</artifactId>
+
+	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
 		<kafka.version>0.11.0.2</kafka.version>
 		<springboot.version>1.5.6.RELEASE</springboot.version>
 		<es.version>5.5.0</es.version>
+		<beam.version>2.5.0</beam.version>
 	</properties>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -121,16 +123,32 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-            <groupId>com.github.stefanbirkner</groupId>
-            <artifactId>system-rules</artifactId>
-            <version>1.16.1</version>
-            <scope>test</scope>
-        </dependency>
+			<groupId>com.github.stefanbirkner</groupId>
+			<artifactId>system-rules</artifactId>
+			<version>1.16.1</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>io.zipkin.zipkin2</groupId>
 			<artifactId>zipkin</artifactId>
 			<version>2.9.1</version>
 		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>metrics-elasticsearch-reporter</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.beam</groupId>
+			<artifactId>beam-sdks-java-io-kafka</artifactId>
+			<version>${beam.version}</version>
+		</dependency>
+		<dependency>
+            <groupId>org.apache.beam</groupId>
+            <artifactId>beam-runners-direct-java</artifactId>
+            <version>${beam.version}</version>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 
 	<repositories>
@@ -138,6 +156,11 @@
 			<id>spring-libs-milestone</id>
 			<name>Spring milestone Repository</name>
 			<url>http://repo.spring.io/milestone</url>
+		</repository>
+		<repository>
+			<id>Internet Central Repository</id>
+			<name>Internet Central Repository</name>
+			<url>http://central.maven.org/maven2/</url>
 		</repository>
 	</repositories>
 </project>

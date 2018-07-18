@@ -20,4 +20,8 @@ public class TagsContents {
 	public static final String PARAM = "param";
 
 	public static final String ERROR = "error";
+	
+	public static final String TRACE_TYPE = "tracingtype";
+
+	public static final String DB = "db.address";
 }
