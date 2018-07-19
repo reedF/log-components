@@ -33,7 +33,7 @@ import zipkin2.codec.SpanBytesDecoder;
 import zipkin2.codec.SpanBytesEncoder;
 
 /**
- *
+ *转换json为span，并计算TopolLink
  *
  */
 public class TopolLinkTransformer implements Transformer<String, String, KeyValue<String, TopolLink>> {
