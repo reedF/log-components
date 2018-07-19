@@ -165,7 +165,8 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 
 	private void flushStore() {
 		if (this.state != null) {
-			Predicate<Span> predicate = (s) -> getDistanceTime(System.currentTimeMillis(), s.timestampAsLong());
+			Predicate<Span> predicate = (s) -> getDistanceTime(System.currentTimeMillis(), s.timestampAsLong(),
+					waterMark);
 			Map<String, Set<Span>> sameTraceId = getAllFromStore();
 			for (Map.Entry<String, Set<Span>> entry : sameTraceId.entrySet()) {
 				if (entry != null && entry.getValue() != null) {
@@ -184,7 +185,7 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 	 * @param time2
 	 * @return
 	 */
-	public static boolean getDistanceTime(long time1, long time2) {
+	public static boolean getDistanceTime(long time1, long time2, long waterMark) {
 		boolean r = false;
 		long diff = time1 - time2;
 		r = diff / (60 * 1000) - waterMark > 0;

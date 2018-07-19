@@ -44,7 +44,7 @@ public class KafkaStreamsConfig {
 	@Value("${kafka.consumer.num}")
 	private int consumerNum = 2;
 
-	public static final String storesName = "counts";
+	public static final String storesName = "spans";
 
 	public static final String M = "||";
 
