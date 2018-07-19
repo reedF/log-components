@@ -249,7 +249,7 @@ public final class TopolLinker {
 					String sql = span.name();
 					if (sql != null) {
 						sql = sql.toLowerCase();
-						if (sql.startsWith("update") || sql.startsWith("insert")) {
+						if (sql.startsWith("update") || sql.startsWith("insert") || sql.startsWith("delete")) {
 							sql = DB_WRITE;
 						} else {
 							sql = DB_READ;
