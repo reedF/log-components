@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.beam.sdk.Pipeline;
@@ -23,11 +26,13 @@ import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.transforms.View;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
+import org.apache.beam.sdk.transforms.windowing.SlidingWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionView;
 import org.apache.beam.sdk.values.PDone;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.Instant;
 
 /**
@@ -83,6 +88,8 @@ public class IpBeamTest {
 		String output = new File(path, options.getOutputFilePrefix()).getAbsolutePath();
 		Pipeline pipeline = Pipeline.create(options);
 
+		cleanOldResultFile(path, options.getOutputFilePrefix());
+
 		// ipview
 		final PCollectionView<Map<String, String>> ipToAreaMapView = pipeline.apply(TextIO.read().from(ipFile))
 				.apply(ParDo.of(new DoFn<String, KV<String, String>>() {
@@ -121,8 +128,15 @@ public class IpBeamTest {
 				}).withSideInputs(ipToAreaMapView));
 
 		// configure windowing settings
-		PCollection<String> windowedEvents = events.apply(Window
-				.<String>into(FixedWindows.of(org.joda.time.Duration.standardSeconds(options.getWindowSizeSecs()))));
+		PCollection<String> windowedEvents = events.apply(
+				// Fixed-time windows
+				// Window.<String>into(FixedWindows.of(org.joda.time.Duration.standardSeconds(options.getWindowSizeSecs())))
+				// Sliding time windows
+				Window.<String>into(
+						SlidingWindows.of(org.joda.time.Duration.standardSeconds(options.getWindowSizeSecs()))
+								.every(org.joda.time.Duration.standardSeconds(5)))
+		//
+		);
 
 		// count by (window, area)
 		PCollection<KV<String, Long>> areaCounts = windowedEvents.apply(Count.<String>perElement());
@@ -168,4 +182,21 @@ public class IpBeamTest {
 		return date.getTime();
 
 	}
+
+	public static void cleanOldResultFile(String path, String prefix) {
+		if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(prefix)) {
+			File file = new File(path);
+			if (file.isDirectory()) {
+				String[] dirs = file.list();
+				if (dirs != null) {
+					for (String s : dirs) {
+						if (StringUtils.isNotBlank(s) && (s.startsWith(".temp-beam") || s.startsWith(prefix))) {
+							DeleteFileUtil.delete(path + "/" + s);
+						}
+					}
+				}
+			}
+		}
+	}
+
 }
