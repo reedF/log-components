@@ -31,7 +31,7 @@ import zipkin2.codec.SpanBytesEncoder;
 import zipkin2.internal.DependencyLinker;
 
 /**
- *
+ *计算zipkin app依赖关系
  *
  */
 public class DependencyTransformer implements Transformer<String, String, KeyValue<String, DependencyLink>> {
