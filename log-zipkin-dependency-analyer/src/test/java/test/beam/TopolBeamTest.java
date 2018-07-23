@@ -19,12 +19,15 @@ import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Count;
+import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.transforms.View;
+import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
+import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.SlidingWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
@@ -35,12 +38,20 @@ import org.apache.beam.sdk.values.PDone;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.Instant;
 
+import com.reed.log.zipkin.dependency.link.TopolLink;
+import com.reed.log.zipkin.dependency.link.TopolLinkBytesDecoder;
+import com.reed.log.zipkin.dependency.link.TopolLinkBytesEncoder;
+
+import test.topol.TopolTest;
+
 /**
  * 访问日志统计IP
  * @author reed
  *
  */
-public class IpBeamTest {
+public class TopolBeamTest {
+
+	public static final String M = "|";
 
 	interface WindowingOptions extends PipelineOptions {
 
@@ -80,7 +91,7 @@ public class IpBeamTest {
 
 	public static void main(String[] args) {
 		args = new String[] { "--ipFile=ips.txt", "--eventFile=test.log", "--outputDir=.", "--outputFilePrefix=result",
-				"--windowSizeSecs=60", "--numShards=2" };
+				"--windowSizeSecs=300", "--numShards=2" };
 		WindowingOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(WindowingOptions.class);
 		String path = System.getProperty("user.dir") + "\\target\\test-classes\\";
 		String ipFile = path + options.getIpFile();
@@ -90,65 +101,52 @@ public class IpBeamTest {
 
 		cleanOldResultFile(path, options.getOutputFilePrefix());
 
-		// ipview
-		final PCollectionView<Map<String, String>> ipToAreaMapView = pipeline.apply(TextIO.read().from(ipFile))
-				.apply(ParDo.of(new DoFn<String, KV<String, String>>() {
-					@ProcessElement
-					public void processElement(ProcessContext c) {
-						String[] ipAreaPair = c.element().split("-");
-						if (ipAreaPair.length == 2) {
-							c.output(KV.of(ipAreaPair[0], ipAreaPair[1]));
-						}
-					}
-				})).apply(View.<String, String>asMap());
+		List<TopolLink> links = TopolTest.testLinks();
+		List<KV<String, Long>> kvs = new ArrayList<>();
+		if (links != null) {
+			for (TopolLink t : links) {
+				if (t != null) {
+					kvs.add(KV.of(t.parent() + M + t.child(), t.timestamp()));
+				}
+			}
+		}
 
 		// read input event source
-		PCollection<String> events = pipeline.apply(TextIO.read().from(eventFile))
-				.apply(ParDo.of(new DoFn<String, String>() {
+		PCollection<String> events = pipeline.apply(Create.of(kvs))
+				// Adding timestamps
+				.apply(ParDo.of(new DoFn<KV<String, Long>, String>() {
 					@ProcessElement
 					public void processElement(ProcessContext c) {
-						String event = c.element();
-						try {
-							String[] a = event.split("\\s+");
-							String ip = a[0];
-							String time = a[3] + " " + a[4];
-							time = time.replace("[", "").replace("]", "");
-
-							long ts = parseToTimestamp(time);
-							Instant instant = new Instant(ts);
-							Instant realTime = instant.plus(Duration.ofHours(8).toMillis());
-
-							String area = c.sideInput(ipToAreaMapView).get(ip);
-							area = (area == null ? "未知地域" : area);
-							c.outputWithTimestamp(area, realTime);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
+						long t = c.element().getValue();
+						// Extract the timestamp from log entry we're currently
+						// processing.
+						Instant instant = new Instant(t);
+						Instant realTime = instant.plus(Duration.ofHours(8).toMillis());
+						// Use ProcessContext.outputWithTimestamp (rather than
+						// ProcessContext.output) to emit the entry with
+						// timestamp attached.
+						c.outputWithTimestamp(c.element().getKey(), realTime);
 					}
-				}).withSideInputs(ipToAreaMapView));
+				}));
 
 		// configure windowing settings
 		PCollection<String> windowedEvents = events.apply(
 				// Fixed-time windows
-				// Window.<String>into(FixedWindows.of(org.joda.time.Duration.standardSeconds(options.getWindowSizeSecs())))
+				// Window.into(FixedWindows.of(org.joda.time.Duration.standardSeconds(options.getWindowSizeSecs())))
 				// Sliding time windows
-				Window.<String>into(
-						SlidingWindows.of(org.joda.time.Duration.standardSeconds(options.getWindowSizeSecs()))
-								.every(org.joda.time.Duration.standardSeconds(5)))
+				Window.into(SlidingWindows.of(org.joda.time.Duration.standardSeconds(options.getWindowSizeSecs()))
+						.every(org.joda.time.Duration.standardSeconds(60)))
 		//
 		);
 
-		// count by (window, area)
-		PCollection<KV<String, Long>> areaCounts = windowedEvents.apply(Count.<String>perElement());
+		// count by (window)
+		PCollection<KV<String, Long>> counts = windowedEvents.apply(Count.perElement());
 
 		// control to output final result
-		// final PTransform<PCollection<String>, PDone> writer = new
-		// PerWindowOneFileWriter(output,
-		// options.getNumShards());
 		final PTransform<PCollection<String>, PDone> writer = new WriteOneFilePerWindow(output, options.getNumShards());
 
 		// format & output windowed result
-		areaCounts.apply(MapElements.via(new SimpleFunction<KV<String, Long>, String>() {
+		counts.apply(MapElements.via(new SimpleFunction<KV<String, Long>, String>() {
 			@Override
 			public String apply(KV<String, Long> input) {
 				return input.getKey() + "\t" + input.getValue() + "\r\n";

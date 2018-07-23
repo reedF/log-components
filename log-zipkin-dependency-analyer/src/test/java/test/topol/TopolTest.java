@@ -37,6 +37,32 @@ public class TopolTest {
 	private static final String M = "<<>>";
 
 	public static void main(String[] args) {
+		testLinks();
+	}
+
+	public static String inputStream2String(InputStream is) throws IOException {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+		StringBuilder sb = new StringBuilder();
+		String line = null;
+		try {
+			while ((line = reader.readLine()) != null) {
+				sb.append(line + M);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				is.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return sb.toString();
+	}
+
+	public static List<TopolLink> testLinks() {
+		List<TopolLink> sametraceLinks = new ArrayList<>();
 		String file = System.getProperty("user.dir") + "\\target\\test-classes\\zipkin.log";
 		InputStream input = null;
 		try {
@@ -96,6 +122,8 @@ public class TopolTest {
 								}
 							});
 						}
+						sametraceLinks.addAll(linker.getAllLinks());
+
 					}
 				}
 			}
@@ -105,44 +133,8 @@ public class TopolTest {
 		}
 
 		input = null;
-	}
-
-	public static String inputStream2String(InputStream is) throws IOException {
-
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-
-		StringBuilder sb = new StringBuilder();
-
-		String line = null;
-
-		try {
-
-			while ((line = reader.readLine()) != null) {
-
-				sb.append(line + M);
-
-			}
-
-		} catch (IOException e) {
-
-			e.printStackTrace();
-
-		} finally {
-
-			try {
-
-				is.close();
-
-			} catch (IOException e) {
-
-				e.printStackTrace();
-
-			}
-
-		}
-
-		return sb.toString();
-
+		sametraceLinks.forEach(l -> System.out.println("-------" + l.toString()));
+		return sametraceLinks;
 	}
 
 }
