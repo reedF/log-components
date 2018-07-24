@@ -6,14 +6,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
-import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
@@ -25,27 +22,24 @@ import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SimpleFunction;
-import org.apache.beam.sdk.transforms.View;
-import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
-import org.apache.beam.sdk.transforms.GroupByKey;
-import org.apache.beam.sdk.transforms.windowing.FixedWindows;
+import org.apache.beam.sdk.transforms.windowing.AfterPane;
+import org.apache.beam.sdk.transforms.windowing.AfterProcessingTime;
+import org.apache.beam.sdk.transforms.windowing.AfterWatermark;
 import org.apache.beam.sdk.transforms.windowing.SlidingWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
-import org.apache.beam.sdk.values.PCollectionView;
 import org.apache.beam.sdk.values.PDone;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.Instant;
 
 import com.reed.log.zipkin.dependency.link.TopolLink;
-import com.reed.log.zipkin.dependency.link.TopolLinkBytesDecoder;
-import com.reed.log.zipkin.dependency.link.TopolLinkBytesEncoder;
 
 import test.topol.TopolTest;
 
 /**
- * 访问日志统计IP
+ * Zipkin调用关系统计
+ * window使用详情可参见：https://beam.apache.org/documentation/programming-guide/#windowing
  * @author reed
  *
  */
@@ -91,7 +85,7 @@ public class TopolBeamTest {
 
 	public static void main(String[] args) {
 		args = new String[] { "--ipFile=ips.txt", "--eventFile=test.log", "--outputDir=.", "--outputFilePrefix=result",
-				"--windowSizeSecs=300", "--numShards=2" };
+				"--windowSizeSecs=3000", "--numShards=2" };
 		WindowingOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(WindowingOptions.class);
 		String path = System.getProperty("user.dir") + "\\target\\test-classes\\";
 		String ipFile = path + options.getIpFile();
@@ -130,12 +124,40 @@ public class TopolBeamTest {
 				}));
 
 		// configure windowing settings
-		PCollection<String> windowedEvents = events.apply(
-				// Fixed-time windows
-				// Window.into(FixedWindows.of(org.joda.time.Duration.standardSeconds(options.getWindowSizeSecs())))
-				// Sliding time windows
-				Window.into(SlidingWindows.of(org.joda.time.Duration.standardSeconds(options.getWindowSizeSecs()))
-						.every(org.joda.time.Duration.standardSeconds(60)))
+		// PCollection<String> windowedEvents = events.apply(
+		// // Fixed-time windows
+		// //
+		// Window.into(FixedWindows.of(org.joda.time.Duration.standardSeconds(options.getWindowSizeSecs())))
+		// // Sliding time windows
+		// Window.into(SlidingWindows.of(org.joda.time.Duration.standardSeconds(options.getWindowSizeSecs()))
+		// .every(org.joda.time.Duration.standardSeconds(60)))
+		// //
+		// );
+
+		PCollection<String> windowedEvents = events.apply(Window
+				.<String>into(
+						// 滑动窗口，可配置options.getWindowSizeSecs()
+						SlidingWindows.of(org.joda.time.Duration.standardMinutes(15))
+								.every(org.joda.time.Duration.standardMinutes(5)))
+				// trigger定义何时发送窗口内的聚合数据（即pane）
+				.triggering(
+						// AfterWatermark
+						// trigger针对事件时间，定义发送时间为：watermark到达window的结束点
+						AfterWatermark.pastEndOfWindow()
+								// fire on current data
+								.withEarlyFirings(
+										// AfterProcessingTime
+										// trigger针对处理时间，定义发送时间为：一定处理时间过后发送window聚合数据
+										AfterProcessingTime.pastFirstElementInPane()
+												.plusDelayOf(org.joda.time.Duration.standardMinutes(1)))
+								// AfterPane是个Data-driven
+								// trigger，针对事件数量处理，收集到一定数量数据后才发送window
+								// Fire on any late data
+								.withLateFirings(AfterPane.elementCountAtLeast(3)))
+				// 允许多久数据延迟，延迟的数据（数据发生时间在窗口内，但当前处理时间已超出此定义的延迟时间长度）也会算入窗口
+				.withAllowedLateness(org.joda.time.Duration.standardMinutes(30))
+				//accumulatingFiredPanes与discardingFiredPanes定义windown内聚合结果是否累积
+				.accumulatingFiredPanes()
 		//
 		);
 
