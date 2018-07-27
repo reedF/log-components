@@ -136,7 +136,7 @@ public class TopolBeamTest {
 
 		PCollection<String> windowedEvents = events.apply(Window
 				.<String>into(
-						// 滑动窗口，可配置options.getWindowSizeSecs()
+						// 滑动窗口，可使用配置options.getWindowSizeSecs()
 						SlidingWindows.of(org.joda.time.Duration.standardMinutes(15))
 								.every(org.joda.time.Duration.standardMinutes(5)))
 				// trigger定义何时发送窗口内的聚合数据（即pane）
