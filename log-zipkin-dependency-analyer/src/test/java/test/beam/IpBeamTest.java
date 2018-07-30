@@ -125,7 +125,9 @@ public class IpBeamTest {
 							e.printStackTrace();
 						}
 					}
-				}).withSideInputs(ipToAreaMapView));
+				})
+						// 旁路输入
+						.withSideInputs(ipToAreaMapView));
 
 		// configure windowing settings
 		PCollection<String> windowedEvents = events.apply(
