@@ -95,14 +95,16 @@ public class MetricService {
 		long count = topol.errorCount();
 		if (topol != null && topol.errorCount() > 0) {
 			String k = genMetricName(topol, ERROR);
-			Map<String, Metric> m = metricSet.getMetrics();
-			if (m.containsKey(k)) {
-				r = ((Counter) m.get(k));
-				r.inc(count);
-			} else {
-				r = metrics.counter(k);
-				r.inc(count);
-				m.put(k, r);
+			if (metricSet != null && metricSet.getMetrics() != null) {
+				Map<String, Metric> m = metricSet.getMetrics();
+				if (m.containsKey(k)) {
+					r = ((Counter) m.get(k));
+					r.inc(count);
+				} else {
+					r = metrics.counter(k);
+					r.inc(count);
+					m.put(k, r);
+				}
 			}
 		}
 		return r;

@@ -61,9 +61,11 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 			List<String> strs = JSON.parseArray(value, String.class);
 			if (strs != null && !strs.isEmpty()) {
 				for (String s : strs) {
-					//Tuple2<String, String> tuple2 = new Tuple2<String, String>(null, s);
+					// Tuple2<String, String> tuple2 = new Tuple2<String,
+					// String>(null, s);
 					try {
-						//spanBytesDecoder.decode(tuple2._2.getBytes(Charset.forName("UTF-8")), data);
+						// spanBytesDecoder.decode(tuple2._2.getBytes(Charset.forName("UTF-8")),
+						// data);
 						spanBytesDecoder.decode(s.getBytes(Charset.forName("UTF-8")), data);
 					} catch (Exception e) {
 						logger.warn("Unable to decode span from String:{},ex is :{}", s, e);
@@ -88,7 +90,9 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 					}
 					Set<Span> spans = sameTraceId.get(msg.traceId()) == null ? new TreeSet<>(new SpanComparator())
 							: sameTraceId.get(msg.traceId());
-					spans.add(msg);
+					if (!getDistanceTime(System.currentTimeMillis(), msg.timestampAsLong(), waterMark)) {
+						spans.add(msg);
+					}
 					sameTraceId.put(msg.traceId(), spans);
 				}
 			}

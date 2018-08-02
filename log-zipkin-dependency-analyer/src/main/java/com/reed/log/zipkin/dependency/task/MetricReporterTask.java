@@ -47,9 +47,10 @@ public class MetricReporterTask {
 	// @Scheduled(cron = "0 0/1 * * * ?")
 	@Scheduled(cron = "${metric.result.send.schedule}")
 	public void timerForEs() {
-		esResultService.saveAllCurrentResult();
+		int size = esResultService.saveAllCurrentResult();
 		cleanMetrics();
-		logger.info("=========Send Metric Result to ES current time : {}=========", sdf.format(new Date()));
+		logger.info("=========Send Metric Result to ES current time : {}, data size is:{}=========",
+				sdf.format(new Date()), size);
 	}
 
 	private void cleanMetrics() {
@@ -57,7 +58,8 @@ public class MetricReporterTask {
 			metricSet.getMetrics().clear();
 		}
 		metrics.removeMatching(MetricFilter.ALL);
-		//logger.info("=========Refresh Reporter current time : {} =========", sdf.format(new Date()));
+		// logger.info("=========Refresh Reporter current time : {} =========",
+		// sdf.format(new Date()));
 	}
 
 }
