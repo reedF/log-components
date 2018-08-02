@@ -27,7 +27,7 @@ public class EsTopolResultService {
 	@Autowired
 	private MetricService metricService;
 
-	public void saveAllCurrentResult() {
+	public int saveAllCurrentResult() {
 		List<EsTopolResult> r = findAllCurrentResult();
 		if (r != null && !r.isEmpty()) {
 			if (!esTemplate.indexExists(EsTopolResult.class)) {
@@ -37,6 +37,7 @@ public class EsTopolResultService {
 			esTemplate.putMapping(EsTopolResult.class);
 			esRepository.saveAll(r);
 		}
+		return r != null ? r.size() : 0;
 	}
 
 	public List<EsTopolResult> findAllCurrentResult() {
