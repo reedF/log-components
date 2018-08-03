@@ -27,7 +27,6 @@ import com.reed.log.zipkin.dependency.link.TopolLinker;
 import com.reed.log.zipkin.dependency.utils.SpanComparator;
 import com.reed.log.zipkin.dependency.utils.TagsContents;
 
-import scala.Tuple2;
 import zipkin2.Span;
 import zipkin2.codec.SpanBytesDecoder;
 import zipkin2.codec.SpanBytesEncoder;
@@ -50,7 +49,8 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 	public void init(ProcessorContext context) {
 		this.context = context;
 		this.state = (KeyValueStore<String, Bytes>) context.getStateStore(KafkaStreamsConfig.storesName);
-		context.schedule(60000); // call #punctuate() each 1000ms
+		//必须对this.context配置，不能去掉this,否则schedule执行会有线程重复执行
+		this.context.schedule(60000); // call #punctuate() each 1000ms
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 			for (Map.Entry<String, Set<Span>> entry : sameTraceId.entrySet()) {
 				if (entry != null && entry.getValue() != null) {
 					TopolLinker linker = new TopolLinker();
-					linker.putTrace(entry.getValue().iterator());
+					linker.putTrace(removeNoParentSpan(entry.getValue()).iterator());
 					List<TopolLink> links = linker.link();
 					if (links != null) {
 						links.forEach(v -> {
@@ -126,6 +126,10 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 	@Override
 	public KeyValue<String, TopolLink> punctuate(long timestamp) {
 		flushStore();
+		if (this.state != null) {
+			logger.info("=========Flush store : {}=========", this.state.approximateNumEntries());
+		}
+
 		return null;
 	}
 
@@ -195,6 +199,41 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 		long diff = time1 - time2;
 		r = diff / (60 * 1000) - waterMark > 0;
 
+		return r;
+	}
+
+	/**
+	 * 处理trace中断链的情况，当子span的parentId指向的父span不存在时，直接移除此子span及其child，不加入trace集合
+	 * 否则TopolLinker在构建Node<Span> tree时会把这种子span直接挂接在根span下，出现无效的依赖关系，
+	 * 针对某些原始trace集合在不同App内发送不完整的情况
+	 * @param spans
+	 * @return
+	 */
+	public Set<Span> removeNoParentSpan(Set<Span> spans) {
+		Set<Span> r = new TreeSet<>(new SpanComparator());
+		if (spans != null) {
+			Set<String> all = new HashSet<>();
+			Set<String> noParents = new HashSet<>();
+			// all parent ids
+			for (Span s : spans) {
+				if (s != null && s.parentId() != null) {
+					all.add(s.parentId());
+				}
+			}
+			// no parent ids
+			for (Span s : spans) {
+				if (s != null && s.parentId() != null && !all.contains(s.parentId())) {
+					noParents.add(s.id());
+				}
+			}
+			// remove no parent span and its child
+			for (Span s : spans) {
+				if (s != null && (s.parentId() == null
+						|| (!noParents.contains(s.parentId()) && !noParents.contains(s.id())))) {
+					r.add(s);
+				}
+			}
+		}
 		return r;
 	}
 

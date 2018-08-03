@@ -40,7 +40,7 @@ public class TreeObjTransformer implements Transformer<String, String, KeyValue<
 	public void init(ProcessorContext context) {
 		this.context = context;
 		this.state = (KeyValueStore<String, Bytes>) context.getStateStore(KafkaStreamsConfig.storesName);
-		context.schedule(5000); // call #punctuate() each 1000ms
+		this.context.schedule(5000); // call #punctuate() each 1000ms
 	}
 
 	@Override

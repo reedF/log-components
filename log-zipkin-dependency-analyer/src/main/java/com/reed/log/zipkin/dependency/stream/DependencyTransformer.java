@@ -47,7 +47,7 @@ public class DependencyTransformer implements Transformer<String, String, KeyVal
 	public void init(ProcessorContext context) {
 		this.context = context;
 		this.state = (KeyValueStore<String, Bytes>) context.getStateStore(KafkaStreamsConfig.storesName);
-		context.schedule(10000); // call #punctuate() each 1000ms
+		this.context.schedule(10000); // call #punctuate() each 1000ms
 	}
 
 	@Override
