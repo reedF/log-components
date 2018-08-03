@@ -50,12 +50,13 @@ public enum TopolLinkBytesEncoder implements BytesEncoder<TopolLink> {
 	static final Buffer.Writer<TopolLink> WRITER = new Buffer.Writer<TopolLink>() {
 		@Override
 		public int sizeInBytes(TopolLink value) {
-			int sizeInBytes = 58; // {"parent":"","child":"","callCount":,"qps":0.0,"cost":0.0}
+			int sizeInBytes = 71; // {"parent":"","child":"","callCount":,"qps":0.0,"cost":0.0,"timestamp":}
 			sizeInBytes += jsonEscapedSizeInBytes(value.parent());
 			sizeInBytes += jsonEscapedSizeInBytes(value.child());
-			sizeInBytes += asciiSizeInBytes(value.callCount());			
+			sizeInBytes += asciiSizeInBytes(value.callCount());
 			sizeInBytes += jsonEscapedSizeInBytes(String.valueOf(value.qps()));
 			sizeInBytes += jsonEscapedSizeInBytes(String.valueOf(value.cost()));
+			sizeInBytes += asciiSizeInBytes(value.timestamp());
 			if (value.errorCount() > 0) {
 				sizeInBytes += 14; // ,"errorCount":
 				sizeInBytes += asciiSizeInBytes(value.errorCount());
@@ -70,6 +71,7 @@ public enum TopolLinkBytesEncoder implements BytesEncoder<TopolLink> {
 			b.writeAscii("\",\"callCount\":").writeAscii(value.callCount());
 			b.writeAscii(",\"qps\":").writeAscii(String.valueOf(value.qps()));
 			b.writeAscii(",\"cost\":").writeAscii(String.valueOf(value.cost()));
+			b.writeAscii("\",\"timestamp\":").writeAscii(value.timestamp());
 			if (value.errorCount() > 0) {
 				b.writeAscii(",\"errorCount\":").writeAscii(value.errorCount());
 			}

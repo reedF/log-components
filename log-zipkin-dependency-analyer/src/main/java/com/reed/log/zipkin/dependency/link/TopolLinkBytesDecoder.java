@@ -76,6 +76,8 @@ public enum TopolLinkBytesDecoder implements BytesDecoder<TopolLink> {
 					result.qps(Double.valueOf(reader.nextString()));
 				} else if (nextName.equals("cost")) {
 					result.cost(Double.valueOf(reader.nextString()));
+				} else if (nextName.equals("timestamp")) {
+					result.timestamp(reader.nextLong());
 				} else {
 					reader.skipValue();
 				}

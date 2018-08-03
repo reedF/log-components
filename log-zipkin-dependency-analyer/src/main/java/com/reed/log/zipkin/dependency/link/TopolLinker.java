@@ -41,6 +41,8 @@ import zipkin2.internal.Nullable;
  */
 public final class TopolLinker {
 	private final Logger logger;
+	// 同一个trace内的调用关系集合（每条关系数据带产生的时间戳，为后续按时间分桶聚合统计做准备）
+	private final List<TopolLink> links = new ArrayList<>();
 	private final Map<Pair, Long> callCounts = new LinkedHashMap<>();
 	private final Map<Pair, Long> errorCounts = new LinkedHashMap<>();
 	private final Map<Pair, Double> costMean = new LinkedHashMap<>();
@@ -182,7 +184,7 @@ public final class TopolLinker {
 				if (parent == null || child == null) {
 					logger.fine("cannot link messaging span to its broker; skipping");
 				} else {
-					addLink(parent, child, isError, duration);
+					addLink(parent, child, isError, duration, currentSpan);
 				}
 				continue;
 			}
@@ -200,8 +202,8 @@ public final class TopolLinker {
 				// that service as necessary.
 				if (kind == Kind.CLIENT && serviceName != null && !rpcAncestorName.equals(serviceName)) {
 					logger.fine("detected missing link to client span");
-					addLink(rpcAncestorName, serviceName, false, duration); // we
-																			// don't
+					addLink(rpcAncestorName, serviceName, false, duration, currentSpan); // we
+					// don't
 					// know if
 					// there's
 					// an error
@@ -227,7 +229,7 @@ public final class TopolLinker {
 				continue;
 			}
 
-			addLink(parent, child, isError, duration);
+			addLink(parent, child, isError, duration, currentSpan);
 		}
 		return this;
 	}
@@ -278,11 +280,15 @@ public final class TopolLinker {
 		return null;
 	}
 
-	void addLink(String parent, String child, boolean isError, long duration) {
+	void addLink(String parent, String child, boolean isError, long duration, Span currentSpan) {
 		if (logger.isLoggable(FINE)) {
 			logger.fine("incrementing " + (isError ? "error " : "") + "link " + parent + " -> " + child);
 		}
 		Pair key = new Pair(parent, child);
+
+		// add links
+		links.add(TopolLink.newBuilder().parent(parent).child(child).timestamp(currentSpan.timestampAsLong()).build());
+
 		if (callCounts.containsKey(key)) {
 			callCounts.put(key, callCounts.get(key) + 1);
 		} else {
@@ -308,6 +314,10 @@ public final class TopolLinker {
 
 	public List<TopolLink> link() {
 		return link(callCounts, errorCounts, costMean);
+	}
+
+	public List<TopolLink> getAllLinks() {
+		return links;
 	}
 
 	/** links are merged by mapping to parent/child and summing corresponding links */

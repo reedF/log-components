@@ -6,11 +6,10 @@ import java.io.StreamCorruptedException;
 import java.nio.charset.Charset;
 import java.util.Locale;
 
-import zipkin2.codec.DependencyLinkBytesDecoder;
-
 /**
- *  extends DependencyLink
- *  仿照DependencyLink，重写DependencyLink、DependencyLinker，添加计算方法级QPS,耗时
+ * 调用依赖关系
+ * extends DependencyLink
+ * 仿照DependencyLink，重写DependencyLink、DependencyLinker，添加计算方法级QPS,耗时
  * @author reed
  *
  */
@@ -55,13 +54,17 @@ public class TopolLink implements Serializable {
 		return cost;
 	}
 
+	public long timestamp() {
+		return timestamp;
+	}
+
 	public Builder toBuilder() {
 		return new Builder(this);
 	}
 
 	public static final class Builder {
 		String parent, child, name;
-		long callCount, errorCount;
+		long callCount, errorCount, timestamp;
 		double qps, cost;
 
 		Builder() {
@@ -75,6 +78,7 @@ public class TopolLink implements Serializable {
 			this.errorCount = source.errorCount;
 			this.qps = source.qps;
 			this.cost = source.cost;
+			this.timestamp = source.timestamp;
 		}
 
 		public Builder parent(String parent) {
@@ -118,6 +122,11 @@ public class TopolLink implements Serializable {
 			return this;
 		}
 
+		public Builder timestamp(long timestamp) {
+			this.timestamp = timestamp;
+			return this;
+		}
+
 		public TopolLink build() {
 			String missing = "";
 			if (parent == null)
@@ -139,7 +148,7 @@ public class TopolLink implements Serializable {
 	// handle AutoValue subclass
 	// See https://github.com/openzipkin/zipkin/issues/1879
 	final String parent, child, name;
-	final long callCount, errorCount;
+	final long callCount, errorCount, timestamp;
 	final double qps, cost;
 
 	TopolLink(Builder builder) {
@@ -150,6 +159,7 @@ public class TopolLink implements Serializable {
 		errorCount = builder.errorCount;
 		qps = builder.qps;
 		cost = builder.cost;
+		timestamp = builder.timestamp;
 	}
 
 	@Override
@@ -161,7 +171,7 @@ public class TopolLink implements Serializable {
 		TopolLink that = (TopolLink) o;
 		return (parent.equals(that.parent)) && (child.equals(that.child)) && (name.equals(that.name))
 				&& (callCount == that.callCount) && (errorCount == that.errorCount) && (cost == that.cost)
-				&& (qps == that.qps);
+				&& (qps == that.qps) && (timestamp == that.timestamp);
 	}
 
 	@Override
@@ -181,6 +191,8 @@ public class TopolLink implements Serializable {
 		h ^= String.valueOf(qps).hashCode();
 		h *= 1000003;
 		h ^= String.valueOf(cost).hashCode();
+		h *= 1000003;
+		h ^= (int) ((timestamp >>> 32) ^ timestamp);
 		return h;
 	}
 
@@ -201,7 +213,7 @@ public class TopolLink implements Serializable {
 
 		Object readResolve() throws ObjectStreamException {
 			try {
-				return DependencyLinkBytesDecoder.JSON_V1.decodeOne(bytes);
+				return TopolLinkBytesDecoder.JSON_V1.decodeOne(bytes);
 			} catch (IllegalArgumentException e) {
 				throw new StreamCorruptedException(e.getMessage());
 			}
