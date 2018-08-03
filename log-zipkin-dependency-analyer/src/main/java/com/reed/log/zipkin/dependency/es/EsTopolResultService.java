@@ -89,7 +89,7 @@ public class EsTopolResultService {
 			String cUrl = childName;
 			if (childName != null) {
 				if (childName.contains(TopolLinker.TRACETYPETAG)) {
-					type = childName.split(TopolLinker.TRACETYPETAG)[0];
+					//type = childName.split(TopolLinker.TRACETYPETAG)[0];
 					cUrl = childName.split(TopolLinker.TRACETYPETAG)[1];
 				} else {
 					cUrl = pUrl;
