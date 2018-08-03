@@ -24,6 +24,7 @@ public class MetricAggregator implements Aggregator<String, TopolLink, TopolLink
 			metricService.metricsData(value);
 		} catch (Exception e) {
 			logger.error("==========Kafka Stream Thread ERROR:{},{}============", e.getClass().getName(), e.getCause());
+			e.printStackTrace();
 		}
 		return null;
 	}
