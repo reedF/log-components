@@ -52,8 +52,8 @@ public class MetricService {
 		String k = genMetricName(topol, QPS);
 		if (metricSet != null && metricSet.getMetrics() != null) {
 			Map<String, Metric> m = metricSet.getMetrics();
-			if (m.containsKey(k)) {
-				meter = (Meter) m.get(k);
+			meter = (Meter) m.get(k);
+			if (meter != null) {				
 				meter.mark(count);
 			} else {
 				meter = metrics.meter(k);
@@ -74,8 +74,8 @@ public class MetricService {
 		if (metricSet != null && metricSet.getMetrics() != null) {
 			String k = genMetricName(topol, COST);
 			Map<String, Metric> m = metricSet.getMetrics();
-			if (m.containsKey(k)) {
-				r = ((Histogram) m.get(k));
+			r = ((Histogram) m.get(k));
+			if (r != null) {	
 				r.update(cost);
 			} else {
 				r = metrics.histogram(k);
@@ -97,8 +97,8 @@ public class MetricService {
 			String k = genMetricName(topol, ERROR);
 			if (metricSet != null && metricSet.getMetrics() != null) {
 				Map<String, Metric> m = metricSet.getMetrics();
-				if (m.containsKey(k)) {
-					r = ((Counter) m.get(k));
+				r = ((Counter) m.get(k));
+				if (r != null) {
 					r.inc(count);
 				} else {
 					r = metrics.counter(k);
