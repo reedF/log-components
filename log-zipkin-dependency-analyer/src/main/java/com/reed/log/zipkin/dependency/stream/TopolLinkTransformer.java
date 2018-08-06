@@ -49,7 +49,7 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 	public void init(ProcessorContext context) {
 		this.context = context;
 		this.state = (KeyValueStore<String, Bytes>) context.getStateStore(KafkaStreamsConfig.storesName);
-		//必须对this.context配置，不能去掉this,否则schedule执行会有线程重复执行
+		// 必须对this.context配置，不能去掉this,否则schedule执行会有线程重复执行
 		this.context.schedule(60000); // call #punctuate() each 1000ms
 	}
 
@@ -114,6 +114,7 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 					}
 				}
 			}
+			
 		}
 
 		return null;
@@ -126,10 +127,7 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 	@Override
 	public KeyValue<String, TopolLink> punctuate(long timestamp) {
 		flushStore();
-		if (this.state != null) {
-			logger.info("=========Flush store : {}=========", this.state.approximateNumEntries());
-		}
-
+		this.context.commit();
 		return null;
 	}
 
@@ -174,6 +172,7 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 
 	private void flushStore() {
 		if (this.state != null) {
+			long start = System.nanoTime();
 			Predicate<Span> predicate = (s) -> getDistanceTime(System.currentTimeMillis(), s.timestampAsLong(),
 					waterMark);
 			Map<String, Set<Span>> sameTraceId = getAllFromStore();
@@ -185,6 +184,8 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 				}
 			}
 			saveInStore(sameTraceId);
+			long cost = (System.nanoTime() - start) / 1000 / 1000;
+			logger.info("=========Flush store size: {},cost:{} ms=========", this.state.approximateNumEntries(), cost);
 		}
 	}
 
@@ -214,10 +215,10 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 		if (spans != null) {
 			Set<String> all = new HashSet<>();
 			Set<String> noParents = new HashSet<>();
-			// all parent ids
+			// all ids
 			for (Span s : spans) {
-				if (s != null && s.parentId() != null) {
-					all.add(s.parentId());
+				if (s != null) {
+					all.add(s.id());
 				}
 			}
 			// no parent ids

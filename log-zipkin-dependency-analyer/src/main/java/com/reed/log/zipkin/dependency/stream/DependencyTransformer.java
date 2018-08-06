@@ -118,6 +118,7 @@ public class DependencyTransformer implements Transformer<String, String, KeyVal
 	@Override
 	public KeyValue<String, DependencyLink> punctuate(long timestamp) {
 		//logger.info("<<<<<<<DependencyTransformer schedule active thread num is :{}>>>>>>",Thread.currentThread().getName());
+		this.context.commit();
 		return null;
 	}
 
