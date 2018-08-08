@@ -6,10 +6,13 @@ import java.util.UUID;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 public class KafkaUtils {
 
 	public static void main(String[] args) {
+		changeLogLevel();
 		send(KafkaBeamTest.borkers, KafkaBeamTest.topic);
 	}
 
@@ -38,5 +41,10 @@ public class KafkaUtils {
 			}
 		}
 		producer.close();
+	}
+	
+	public static void changeLogLevel() {
+		Logger.getRootLogger().setLevel(Level.INFO);
+		Logger.getLogger("org.apache.kafka").setLevel(Level.OFF);
 	}
 }

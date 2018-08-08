@@ -3,27 +3,26 @@ package com.reed.log.zipkin.dependency.stream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
-
-import com.alibaba.fastjson.JSON;
-
-import scala.Tuple2;
 
 /**
  * Kafak stream config
@@ -41,6 +40,10 @@ public class KafkaStreamsConfig {
 	private String groupId;
 	@Value("${kafka.topic}")
 	private String topic;
+	@Value("${kafka.bridge.topic}")
+	private String bridgeTopic;
+	@Value("${kafka.bridge.enable}")
+	private boolean bridgeEnable;
 	@Value("${kafka.consumer.num}")
 	private int consumerNum = 2;
 
@@ -118,13 +121,19 @@ public class KafkaStreamsConfig {
 		return stream;
 	}
 
+	/**
+	 * 消费zipkin span数据,计算调用依赖关系，统计
+	 * @param kStreamBuilder
+	 * @param aggregator
+	 * @return
+	 */
 	@SuppressWarnings("rawtypes")
 	@Bean
 	public KStream<String, String> kStreamV1(StreamsBuilder kStreamBuilder, MetricAggregator aggregator) {
 		StoreBuilder builder = Stores.keyValueStoreBuilder(Stores.inMemoryKeyValueStore(storesName), Serdes.String(),
 				Serdes.Bytes());
 		kStreamBuilder.addStateStore(builder.withLoggingDisabled());
-		KStream<String, String> stream = kStreamBuilder.stream(topic);
+		KStream<String, String> stream = kStreamBuilder.stream(bridgeTopic);
 
 		KStream<String, String> out = stream
 				// [(k,v),(k,v),(k,v)...] to DependencyLink(k,v) key is traceId
@@ -137,6 +146,22 @@ public class KafkaStreamsConfig {
 		;
 
 		// out.print();
+		return stream;
+	}
+
+	/**
+	 * 为了分布式部署，需搬运topic zipkin 至 apm-zipkin,将相同traceId的span分布到相同的分区内，由同一个stream实例处理
+	 * @param kStreamBuilder
+	 * @return
+	 */
+	@Bean
+	@ConditionalOnExpression("${kafka.bridge.enable:true}")
+	public KStream<String, String> kStreamBridge(StreamsBuilder kStreamBuilder) {
+		KStream<String, String> stream = kStreamBuilder.stream(topic);
+		if (StringUtils.isNotBlank(bridgeTopic)) {
+			stream.flatMap(new SpanKeyValueMapper()).to(bridgeTopic,
+					Produced.<String, String>with(Serdes.String(), Serdes.String(), new BridgeStreamPartitioner()));
+		}
 		return stream;
 	}
 
