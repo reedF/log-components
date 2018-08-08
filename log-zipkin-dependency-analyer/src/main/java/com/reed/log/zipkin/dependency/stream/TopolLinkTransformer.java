@@ -114,7 +114,7 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 					}
 				}
 			}
-			
+
 		}
 
 		return null;
@@ -127,7 +127,6 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 	@Override
 	public KeyValue<String, TopolLink> punctuate(long timestamp) {
 		flushStore();
-		this.context.commit();
 		return null;
 	}
 
@@ -148,6 +147,7 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 							Bytes.wrap(spanBytesEncoder.encodeList(new ArrayList<>(entry.getValue()))));
 				}
 			}
+			this.context.commit();
 		}
 	}
 
@@ -157,15 +157,20 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 	 */
 	private Map<String, Set<Span>> getAllFromStore() {
 		Map<String, Set<Span>> map = new HashMap<>();
-		KeyValueIterator<String, Bytes> iterator = this.state.all();
-		if (iterator != null) {
-			iterator.forEachRemaining(entry -> {
-				if (entry != null) {
-					Set<Span> sets = new HashSet<>();
-					spanBytesDecoder.decodeList(entry.value.get(), sets);
-					map.put(entry.key, sets);
-				}
-			});
+		try (KeyValueIterator<String, Bytes> iterator = this.state.all()) {
+			if (iterator != null) {
+				iterator.forEachRemaining(entry -> {
+					if (entry != null) {
+						Set<Span> sets = new HashSet<>();
+						spanBytesDecoder.decodeList(entry.value.get(), sets);
+						map.put(entry.key, sets);
+					}
+				});
+				// change to using try-with-resource
+				// iterator.close();
+			}
+		} catch (Exception e) {
+			logger.error("Store query failed:{},{}", e.getClass().getName(), e.getCause());
 		}
 		return map;
 	}
@@ -173,19 +178,24 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 	private void flushStore() {
 		if (this.state != null) {
 			long start = System.nanoTime();
+			long clean = 0;
 			Predicate<Span> predicate = (s) -> getDistanceTime(System.currentTimeMillis(), s.timestampAsLong(),
 					waterMark);
 			Map<String, Set<Span>> sameTraceId = getAllFromStore();
 			for (Map.Entry<String, Set<Span>> entry : sameTraceId.entrySet()) {
 				if (entry != null && entry.getValue() != null) {
 					Set<Span> set = entry.getValue();
-					set.removeIf(predicate);
+					boolean r = set.removeIf(predicate);
 					sameTraceId.put(entry.getKey(), set);
+					if (r) {
+						clean++;
+					}
 				}
 			}
 			saveInStore(sameTraceId);
 			long cost = (System.nanoTime() - start) / 1000 / 1000;
-			logger.info("=========Flush store size: {},cost:{} ms=========", this.state.approximateNumEntries(), cost);
+			long now = this.state.approximateNumEntries();
+			logger.info("=========Flush store, now size is: {},clean size is:{},cost:{} ms=========", now, clean, cost);
 		}
 	}
 
@@ -197,7 +207,7 @@ public class TopolLinkTransformer implements Transformer<String, String, KeyValu
 	 */
 	public static boolean getDistanceTime(long time1, long time2, long waterMark) {
 		boolean r = false;
-		long diff = time1 - time2;
+		long diff = time1 - time2 / 1000;
 		r = diff / (60 * 1000) - waterMark > 0;
 
 		return r;

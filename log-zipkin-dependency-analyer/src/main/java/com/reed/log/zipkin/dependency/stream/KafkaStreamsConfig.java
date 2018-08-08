@@ -48,8 +48,8 @@ public class KafkaStreamsConfig {
 
 	public static final String M = "||";
 
-	// 统计时间窗口长度，毫秒
-	public static final int windowSize = 3000;
+	// commit iterval，毫秒
+	public static final int windowSize = 100;
 
 	public static Logger logger = LoggerFactory.getLogger(KafkaStreamsConfig.class);
 
@@ -67,14 +67,16 @@ public class KafkaStreamsConfig {
 		// 注：某些ConsumerConfig对kafka-stream启动的RestoreConsumer（消费store类topic）的消费者配置无效，参见{@link
 		// #StreamsConfig.getRestoreConsumerConfigs}
 		// props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
+		// props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 5000);
 		props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2000);
 		// props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG,20000);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
 		props.put(StreamsConfig.BUFFERED_RECORDS_PER_PARTITION_CONFIG, 2000);
 		// producer setting
 		props.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 1024 * 1024 * 20);
-		// props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG,
-		// new JsonSerde<TreeObj>(TreeObj.class).getClass().getName());
+		// need kafka broker version > 0.11
+		// props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG,
+		// StreamsConfig.EXACTLY_ONCE);
 		props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class.getName());
 
 		return new StreamsConfig(props);
@@ -88,7 +90,7 @@ public class KafkaStreamsConfig {
 	 * @return
 	 */
 	@SuppressWarnings({ "rawtypes", "deprecation" })
-	//@Bean
+	// @Bean
 	public KStream<String, String> kStreamV1TestZipkinDepdencyLink(StreamsBuilder kStreamBuilder) {
 		// StateStoreSupplier myStore =
 		// Stores.create(storesName).withStringKeys().withStringValues().inMemory().build();
@@ -115,8 +117,7 @@ public class KafkaStreamsConfig {
 		out.print();
 		return stream;
 	}
-	
-	
+
 	@SuppressWarnings("rawtypes")
 	@Bean
 	public KStream<String, String> kStreamV1(StreamsBuilder kStreamBuilder, MetricAggregator aggregator) {
@@ -128,13 +129,14 @@ public class KafkaStreamsConfig {
 		KStream<String, String> out = stream
 				// [(k,v),(k,v),(k,v)...] to DependencyLink(k,v) key is traceId
 				.transform(() -> new TopolLinkTransformer(), storesName)
+				// metric
 				.peek((k, v) -> aggregator.apply(null, v, null))
 				// .toStream()
 				.mapValues(v -> v.toString())
 		//
 		;
 
-		//out.print();
+		// out.print();
 		return stream;
 	}
 
