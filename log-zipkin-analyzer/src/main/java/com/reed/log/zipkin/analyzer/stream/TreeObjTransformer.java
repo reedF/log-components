@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.common.utils.Bytes;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.reed.log.zipkin.analyzer.pojo.TagsContents;
 import com.reed.log.zipkin.analyzer.pojo.ZipkinLog;
@@ -30,17 +32,21 @@ import com.reed.log.zipkin.analyzer.tree.TreeParser;
  * @author reed
  *
  */
+@SuppressWarnings("rawtypes")
 public class TreeObjTransformer implements Transformer<String, String, KeyValue<String, TreeObj>> {
 
 	public static Logger logger = LoggerFactory.getLogger(TreeObjTransformer.class);
 	private ProcessorContext context;
 	private KeyValueStore<String, Bytes> state;
+	// 缓存数据过期水位线，15分钟
+	public static final long waterMark = 15;
 
 	@Override
 	public void init(ProcessorContext context) {
 		this.context = context;
 		this.state = (KeyValueStore<String, Bytes>) context.getStateStore(KafkaStreamsConfig.storesName);
-		this.context.schedule(5000); // call #punctuate() each 1000ms
+		this.context.schedule(waterMark * 60 * 1000); // call #punctuate() each
+														// 1000ms
 	}
 
 	@Override
@@ -87,8 +93,7 @@ public class TreeObjTransformer implements Transformer<String, String, KeyValue<
 						stored.add(t);
 					}
 
-					// this.state.put(key, JSON.toJSONString(stored));
-					this.state.put(key, Bytes.wrap(JSON.toJSONBytes(stored)));
+					saveStore(key, stored);
 					trees.put(key, stored);
 				}
 			}
@@ -117,12 +122,13 @@ public class TreeObjTransformer implements Transformer<String, String, KeyValue<
 		// TODO 缓存一定时间的log，以合并相同traceId的span为完整的跟踪树
 		// 停止使用，此情况下存在消息消费不及时，堆积的问题，导致“*-repartition”类的topic的consumer出现timeout而进程退出，持续一段时间后所有consumer都shutdown，将无消费
 		// send();
+		flushStore();
 		return null;
 	}
 
 	@Override
 	public void close() {
-
+		this.state.close();
 	}
 
 	private List<TreeObj> initFromStore(String key) {
@@ -169,5 +175,59 @@ public class TreeObjTransformer implements Transformer<String, String, KeyValue<
 				}
 			}
 		}
+	}
+
+	private void saveStore(String key, List<TreeObj> stored) {
+		if (StringUtils.isNotBlank(key) && stored != null && !stored.isEmpty()) {
+			// this.state.put(key, JSON.toJSONString(stored));
+			this.state.put(key, Bytes.wrap(JSON.toJSONBytes(stored)));
+		}
+	}
+
+	private void flushStore() {
+		long start = System.nanoTime();
+		Map<String, List<TreeObj>> trees = new HashMap<>();
+		try (KeyValueIterator<String, Bytes> iterator = this.state.all()) {
+			if (iterator != null) {
+				iterator.forEachRemaining(entry -> {
+					if (entry != null) {
+						Type type = new TypeReference<List<TreeObj>>() {
+						}.getType();
+						List<TreeObj> r = JSON.parseObject(entry.value.get(), type);
+						if (r != null && !r.isEmpty()) {
+							trees.put(entry.key, r);
+						}
+					}
+				});
+			}
+		} catch (Exception e) {
+			logger.error("Store flush failed:{},{}", e.getClass().getName(), e.getCause());
+		}
+		if (trees != null && !trees.isEmpty()) {
+			Predicate<TreeObj> predicate = (s) -> getDistanceTime(System.currentTimeMillis(),
+					((JSONObject) s.biz).getLong("timestamp"), waterMark);
+			for (Map.Entry<String, List<TreeObj>> entry : trees.entrySet()) {
+				if (entry != null && entry.getValue() != null && !entry.getValue().isEmpty()) {
+					List<TreeObj> list = entry.getValue();
+					list.removeIf(predicate);
+					if (list == null || list.isEmpty()) {
+						this.state.delete(entry.getKey());
+					} else {
+						saveStore(entry.getKey(), list);
+					}
+				}
+			}
+		}
+		long cost = (System.nanoTime() - start) / 1000 / 1000;
+		long now = this.state.approximateNumEntries();
+		logger.info("=========Flush store, now size is: {},cost:{} ms=========", now, cost);
+	}
+
+	public static boolean getDistanceTime(long time1, long time2, long waterMark) {
+		boolean r = false;
+		long diff = time1 - time2 / 1000;
+		r = diff / (60 * 1000) - waterMark > 0;
+
+		return r;
 	}
 }
