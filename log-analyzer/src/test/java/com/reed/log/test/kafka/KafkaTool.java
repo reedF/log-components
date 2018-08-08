@@ -7,7 +7,12 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 
 import kafka.message.Message;
-
+/**
+ * kafka自带重置offset工具：
+ * ./kafka-consumer-groups.bat --bootstrap-server 172.16.32.250:9092 --group test-dependency --reset-offsets --to-latest --all-topics --execute
+ * @author reed
+ *
+ */
 public class KafkaTool {  
   
 	/**
