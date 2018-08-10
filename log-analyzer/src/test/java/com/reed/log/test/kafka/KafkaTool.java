@@ -8,8 +8,11 @@ import org.apache.kafka.common.TopicPartition;
 
 import kafka.message.Message;
 /**
- * kafka自带重置offset工具：
+ * kafka自带工具：
+ * 重置offset工具：
  * ./kafka-consumer-groups.bat --bootstrap-server 172.16.32.250:9092 --group test-dependency --reset-offsets --to-latest --all-topics --execute
+ * 查询group：
+ * ./kafka-consumer-groups.bat --bootstrap-server 172.16.32.250:9092 --describe --group apm-topol
  * @author reed
  *
  */
