@@ -3,6 +3,7 @@
 
 	<!-- 常量定义start -->
 	<!-- 默认日志输出格式 -->
+	<!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
 	<property name="DEFAULT_PATTERN"
 		value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - [%file:%line] - %msg%n" />
 	<property name="MAX_HISTORY" value="30" />
