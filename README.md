@@ -28,6 +28,11 @@ docker pull sheepkiller/kafka-manager
 docker pull grafana/grafana
 docker pull bringg/kibana-sentinl
 docker pull bitsensor/elastalert
+# nginx
+docker pull nginx
+# envoy
+docker pull envoyproxy/envoy-alpine
+
 
 sudo sysctl -w vm.max_map_count=262144
 docker run -d --name zipkin -p 9411:9411 openzipkin/zipkin
@@ -41,6 +46,12 @@ docker run -d --name kf-m -p 9000:9000 -e ZK_HOSTS="192.168.59.103:2181" sheepki
 docker run -d --name=grafana -p 3000:3000 -e "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel" grafana/grafana
 docker run -d --name sentinl -p 5601:5601 --link es:elasticsearch -e ELASTICSEARCH_URL=http://192.168.59.103:9200 bringg/kibana-sentinl
 docker run -d --name elastalert -p 3030:3030 --net="host" -e es_host=192.168.59.103 bitsensor/elastalert:latest
+# -v用于加载docker容器外文件
+docker run --name nginx -d -p 80:80 -p 443:443 -v /c/Users/nginx/html:/etc/nginx/html -v /c/Users/nginx/nginx.conf:/etc/nginx/nginx.conf:ro -v /c/Users/nginx/logs:/var/log/nginx -v /c/Users/nginx/cert.crt:/etc/nginx/cert.crt -v /c/Users/nginx/cert_nopwd.key:/etc/nginx/cert_nopwd.key nginx
+# envoy
+docker run -d -p 80:80 -p 10000:10000 -v /c/Users/envoy/envoy.yaml:/etc/envoy/envoy.yaml -v /c/Users/envoy/foo-x-interface-proto.pb:/etc/envoy/foo-x-interface-proto.pb -v /c/Users/envoy/grpc-lib.pb:/etc/envoy/grpc-lib.pb --name envoy envoyproxy/envoy-alpine 
+docker run -d -p 80:80 -p 10000:10000 -v /c/Users/envoy/envoy-proxy.yaml:/etc/envoy/envoy.yaml -v /c/Users/envoy/foo-x-interface-proto.pb:/etc/envoy/foo-x-interface-proto.pb --name envoy-proxy envoyproxy/envoy-alpine 
+docker run -d -p 81:81 -p 10001:10000 -v /c/Users/envoy/envoy-grpc.yaml:/etc/envoy/envoy.yaml --name envoy-grpc envoyproxy/envoy-alpine 
 
 
 # elasticsearch.yml如下：
