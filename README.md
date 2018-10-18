@@ -36,7 +36,7 @@ docker pull envoyproxy/envoy-alpine
 
 sudo sysctl -w vm.max_map_count=262144
 docker run -d --name zipkin -p 9411:9411 openzipkin/zipkin
-docker run --env STORAGE_TYPE=elasticsearch --env ES_HOSTS=192.168.59.103 -e JAVA_OPTS="-Xms512m -Xms512m" openzipkin/zipkin-dependencies
+docker run --env STORAGE_TYPE=elasticsearch --env ES_HOSTS=192.168.59.103 -e JAVA_OPTS="-Xms512m -Xmx512m" openzipkin/zipkin-dependencies
 docker run -d --name es -p 9200:9200 -p 9300:9300 -v /c/Users/es/es.yml:/usr/share/elasticsearch/config/elasticsearch.yml elasticsearch
 docker run -d --name es-head -p 9100:9100 mobz/elasticsearch-head:5
 docker run -d --name kibana -p 5601:5601 --link es:elasticsearch -e ELASTICSEARCH_URL=http://192.168.59.103:9200 kibana 
