@@ -56,6 +56,7 @@
 		<module>log-springboot-demo</module>
 		<module>log-zipkin-analyzer</module>
 		<module>log-zipkin-dependency-analyer</module>
+		<module>log-beam-flink</module>
 	</modules>
 	<dependencyManagement>
 		<dependencies>

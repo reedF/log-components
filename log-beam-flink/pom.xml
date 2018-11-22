@@ -1,0 +1,168 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>log-beam-flink</artifactId>
+	<parent>
+		<groupId>com.reed.log</groupId>
+		<artifactId>log-components</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.8</java.version>
+		<beam.version>2.8.0</beam.version>
+		<flink.version>1.6.2</flink.version>
+		<kafka.version>0.11.0.2</kafka.version>
+		<springboot.version>1.5.6.RELEASE</springboot.version>
+		<es.version>5.5.0</es.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.beam</groupId>
+			<artifactId>beam-sdks-java-io-kafka</artifactId>
+			<version>${beam.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.beam/beam-sdks-java-io-elasticsearch -->
+		<dependency>
+			<groupId>org.apache.beam</groupId>
+			<artifactId>beam-sdks-java-io-elasticsearch</artifactId>
+			<version>${beam.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.beam</groupId>
+			<artifactId>beam-runners-flink_2.11</artifactId>
+			<version>${beam.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.beam</groupId>
+			<artifactId>beam-runners-direct-java</artifactId>
+			<version>${beam.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-java</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-streaming-java_2.11</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-clients_2.11</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+		</dependency>
+	</dependencies>
+
+	<profiles>
+		<profile>
+			<!-- 本地开发环境 -->
+			<id>dev</id>
+			<properties>
+				<profiles.active>dev</profiles.active>
+			</properties>
+			<activation>
+				<!-- 设置默认激活这个配置 -->
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+		<profile>
+			<!-- 发布环境 -->
+			<id>online</id>
+			<properties>
+				<profiles.active>online</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<!-- 测试环境 -->
+			<id>dohko</id>
+			<properties>
+				<profiles.active>dohko</profiles.active>
+			</properties>
+		</profile>
+	</profiles>
+
+	<build>
+		<finalName>${artifactId}</finalName>
+		<!-- 读取pom.xml profile定义，注入properties文件 -->
+		<filters>
+			<filter>src/main/resources/job-${profiles.active}.properties</filter>
+		</filters>
+		<resources>
+			<!-- 先指定 src/main/resources下所有文件及文件夹为资源文件 -->
+			<resource>
+				<directory>${project.basedir}/src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/*</include>
+				</includes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<version>1.0.0</version>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>read-project-properties</goal>
+						</goals>
+						<configuration>
+							<files>
+								<file>${project.basedir}/src/main/resources/job.properties</file>
+							</files>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- 打可执行jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet/>
+							<outputFile>${project.build.directory}/${project.artifactId}-fat.jar</outputFile>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<Main-Class>${job.main.class}</Main-Class>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
