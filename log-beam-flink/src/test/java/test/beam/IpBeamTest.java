@@ -31,6 +31,9 @@ import org.apache.beam.sdk.values.PDone;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.Instant;
 
+import com.reed.log.common.JobConfig;
+import com.reed.log.common.RunnerTypeEnum;
+
 /**
  * 访问日志统计IP
  * @author reed
@@ -78,6 +81,7 @@ public class IpBeamTest {
 		args = new String[] { "--ipFile=ips.txt", "--eventFile=test.log", "--outputDir=.", "--outputFilePrefix=result",
 				"--windowSizeSecs=60", "--numShards=2" };
 		WindowingOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(WindowingOptions.class);
+		options.setRunner(RunnerTypeEnum.getRunner(JobConfig.RUNNER_TYPE_DIRECT));
 		String path = System.getProperty("user.dir") + "\\target\\test-classes\\";
 		String ipFile = path + options.getIpFile();
 		String eventFile = path + options.getEventFile();
