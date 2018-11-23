@@ -1,6 +1,11 @@
 ## log-beam-flink
 集成beam与flink
 
+## kafka
+# kafka安全认证
+https://blog.csdn.net/yongyuandefengge/article/details/76684793/  
+
+
 ## flink
 # 部署安装
 https://ci.apache.org/projects/flink/flink-docs-release-1.6/start/flink_on_windows.html  

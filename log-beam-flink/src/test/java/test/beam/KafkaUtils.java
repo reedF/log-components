@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -14,21 +15,22 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.config.SslConfigs;
 
 public class KafkaUtils {
 
-	public static final String borkers = "192.168.59.103:9092";// "172.16.32.86:9092";//"192.168.59.103:9092";
+	public static final String borkers = "172.16.0.30:9092";// "172.16.0.30:9092";//"192.168.59.103:9092";
 	public static final String topic = "logs";// "bd_canal_pos";//"db_order_new";
-	public static final String topic_result = "results";
-	public static final String group = "test";
+	public static final String topic_result = "db_order_new";// "db_order_new";// "results";
+	public static final String group = "dbOrderNewBfGroup";// "test";
 
 	public static void main(String[] args) {
+
 		changeLogLevel();
-		//send(borkers, topic);
-		//listen(topic, false);
+		// send(borkers, topic);
+		// listen(topic, false);
 		listen(topic_result, false);
 	}
-	
 
 	public static void send(String borkerList, String topic) {
 		Properties props = new Properties();
@@ -65,6 +67,8 @@ public class KafkaUtils {
 		props.put("auto.commit.interval.ms", "1000");
 		props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 		props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+		setAuth(props);
+
 		KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
 		consumer.subscribe(Arrays.asList(topics));
 		boolean flag = true;
@@ -93,6 +97,21 @@ public class KafkaUtils {
 			consumer.close();
 		}
 
+	}
+
+	/**
+	 * 配置kafka权限
+	 * @param props
+	 */
+	public static void setAuth(Properties props) {
+		if (borkers.equals("172.16.0.30:9092")) {
+			String jaas = ClassLoader.getSystemResource("") + "kafka_client_jaas.conf";
+			// kafka auth
+			System.setProperty("java.security.auth.login.config", jaas);
+			// configure the following three settings for SSL Encryption
+			props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
+			props.put("sasl.mechanism", "PLAIN");
+		}
 	}
 
 	public static void changeLogLevel() {

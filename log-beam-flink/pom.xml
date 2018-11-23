@@ -110,6 +110,15 @@
 				</includes>
 			</resource>
 		</resources>
+		<!-- test resources共享 src/main/resources-->
+		<testResources>
+			<testResource>
+				<directory>${project.basedir}/src/test/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>${project.basedir}/src/main/resources</directory>
+			</testResource>
+		</testResources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -148,7 +157,7 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<artifactSet/>
+							<artifactSet />
 							<outputFile>${project.build.directory}/${project.artifactId}-fat.jar</outputFile>
 							<transformers>
 								<transformer
