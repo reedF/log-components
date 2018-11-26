@@ -1,5 +1,7 @@
 package com.reed.log.model;
 
+import lombok.Data;
+
 /**
  * msg in kafka
  * @author reed
@@ -22,9 +24,8 @@ package com.reed.log.model;
 "ts":"2018-05-18 16:10:33,2018-05-18 16:11:00" //记录执行时间与消息接收时间
 }
  */
+@Data
 public class KafkaMsg extends BaseObj {
-	/** kafka msg key*/
-	private String msgKey;
 
 	private String databaseName;
 

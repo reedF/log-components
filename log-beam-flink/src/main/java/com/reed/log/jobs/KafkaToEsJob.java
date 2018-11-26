@@ -1,8 +1,10 @@
 package com.reed.log.jobs;
 
 import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.values.PCollection;
 
 import com.reed.log.beam.BaseBeam;
+import com.reed.log.model.KafkaMsg;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +27,9 @@ public class KafkaToEsJob extends BaseBeam {
 
 	@Override
 	public void doBusiness(Pipeline pipeline) {
-		log.info("tttttttttttt");
+		log.info("========Job business begin......=========");
+		PCollection<KafkaMsg> streams = readFromKafka(pipeline,KafkaMsg.class);
+		logMsg(streams);
 	}
 
 }

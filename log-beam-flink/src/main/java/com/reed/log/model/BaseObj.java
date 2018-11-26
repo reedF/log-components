@@ -8,11 +8,22 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
 public class BaseObj implements Serializable{
-	
+	/** kafka msg key*/
+	private String msgKey;
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -3343648118854203263L;
+	
+	
+
+	public String getMsgKey() {
+		return msgKey;
+	}
+
+	public void setMsgKey(String msgKey) {
+		this.msgKey = msgKey;
+	}
 
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj);
