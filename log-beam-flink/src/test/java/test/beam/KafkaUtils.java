@@ -19,9 +19,9 @@ import org.apache.kafka.common.config.SslConfigs;
 
 public class KafkaUtils {
 
-	public static final String borkers = "172.16.0.30:9092";// "172.16.0.30:9092";//"192.168.59.103:9092";
+	public static final String borkers = "192.168.59.103:9092";// "172.16.0.30:9092";//"192.168.59.103:9092";
 	public static final String topic = "logs";// "bd_canal_pos";//"db_order_new";
-	public static final String topic_result = "db_order_new";// "db_order_new";// "results";
+	public static final String topic_result = "results";// "db_order_new";// "results";
 	public static final String group = "dbOrderNewBfGroup";// "test";
 
 	public static void main(String[] args) {

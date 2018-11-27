@@ -8,11 +8,14 @@ import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.kafka.KafkaIO;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.ParDo.SingleOutput;
+import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.joda.time.Instant;
 
 import com.alibaba.fastjson.JSON;
@@ -90,7 +93,7 @@ public abstract class BaseBeam {
 	 * @return
 	 */
 	@SuppressWarnings("serial")
-	public static <T extends BaseObj> PCollection<T> readFromKafka(Pipeline pipeline,Class<T> type) {
+	public static <T extends BaseObj> PCollection<T> readFromKafka(Pipeline pipeline, Class<T> type) {
 		PCollection<T> events = pipeline.apply(
 				//
 				KafkaIO.<String, String>read()
@@ -113,16 +116,37 @@ public abstract class BaseBeam {
 				.apply(ParDo.of(new DoFn<KV<String, String>, T>() {
 					@ProcessElement
 					public void processElement(ProcessContext c) {
-						//Type type = new TypeReference<T>() {}.getType();
+						// Type type = new TypeReference<T>() {}.getType();
 						if (c.element().getValue() != null) {
 							T t = JSON.parseObject(c.element().getValue(), type);
-							t.setMsgKey(c.element().getKey());
+							if (t instanceof BaseObj) {
+								t.setMsgKey(c.element().getKey());
+							}
 							c.output(t);
 						}
 					}
 				}));
 
 		return events;
+	}
+
+	public static void writeToKafka(PCollection<String> events, String borkers, String topic) {
+		if (events != null) {
+			events.apply(KafkaIO.<String, String>write().withBootstrapServers(borkers).withTopic(topic)
+					.withValueSerializer(StringSerializer.class).values());
+		}
+	}
+
+	@SuppressWarnings("serial")
+	public static <K, V> PCollection<String> formatResult(PCollection<KV<K, V>> events) {
+		return events.apply(MapElements.via(new SimpleFunction<KV<K, V>, String>() {
+			@Override
+			public String apply(KV<K, V> input) {
+				String key = JSON.toJSONString(input.getKey());
+				String data = JSON.toJSONString(input.getValue());
+				return key + "===" + data;
+			}
+		}));
 	}
 
 	/**
