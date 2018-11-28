@@ -63,12 +63,8 @@ public class JobConfig {
 		return list;
 	}
 
-	public static List<String> getKafkaTopicsOutput() {
-		List<String> list = null;
-		String str = CONFIG.getProperty(KEY_KAFKA_TOPICS_OUTPUT);
-		if (StringUtils.isNotBlank(str)) {
-			list = Arrays.asList(Arrays.stream(str.split(",")).map(String::trim).toArray(String[]::new));
-		}
-		return list;
+	public static String getKafkaTopicsOutput() {
+		return CONFIG.getProperty(KEY_KAFKA_TOPICS_OUTPUT);
+
 	}
 }

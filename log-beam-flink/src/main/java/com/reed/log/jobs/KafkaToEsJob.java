@@ -37,7 +37,7 @@ public class KafkaToEsJob extends BaseBeam {
 		// business
 		PCollection<KV<String, KafkaMsg>> datas = businessLogic(streams);
 		// format and write
-		PCollection<String> result = formatResult(datas);
+		PCollection<KV<String, String>> result = formatResult(datas);
 		writeToKafka(result, KafkaUtils.borkers, KafkaUtils.topic_result);
 	}
 

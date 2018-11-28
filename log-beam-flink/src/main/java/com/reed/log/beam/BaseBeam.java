@@ -3,6 +3,7 @@ package com.reed.log.beam;
 import java.io.IOException;
 import java.time.Duration;
 
+import org.apache.beam.repackaged.beam_sdks_java_io_kafka.com.google.common.collect.ImmutableMap;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.kafka.KafkaIO;
@@ -130,21 +131,33 @@ public abstract class BaseBeam {
 		return events;
 	}
 
-	public static void writeToKafka(PCollection<String> events, String borkers, String topic) {
+	/**
+	 * write to kafka
+	 * refer to https://beam.apache.org/releases/javadoc/2.0.0/org/apache/beam/sdk/io/kafka/KafkaIO.html
+	 * @param events
+	 * @param borkers
+	 * @param topic
+	 */
+	public static void writeToKafka(PCollection<KV<String, String>> events, String borkers, String topic) {
 		if (events != null) {
-			events.apply(KafkaIO.<String, String>write().withBootstrapServers(borkers).withTopic(topic)
-					.withValueSerializer(StringSerializer.class).values());
+			events.apply(KafkaIO.<String, String>write()
+					// setting
+					.withBootstrapServers(borkers).withTopic(topic)
+					// ser
+					.withKeySerializer(StringSerializer.class).withValueSerializer(StringSerializer.class)
+					// settings for ProducerConfig. e.g, to enable compression :
+					.updateProducerProperties(ImmutableMap.of("compression.type", "gzip")));
 		}
 	}
 
 	@SuppressWarnings("serial")
-	public static <K, V> PCollection<String> formatResult(PCollection<KV<K, V>> events) {
-		return events.apply(MapElements.via(new SimpleFunction<KV<K, V>, String>() {
+	public static <K, V> PCollection<KV<String, String>> formatResult(PCollection<KV<K, V>> events) {
+		return events.apply(MapElements.via(new SimpleFunction<KV<K, V>, KV<String, String>>() {
 			@Override
-			public String apply(KV<K, V> input) {
+			public KV<String, String> apply(KV<K, V> input) {
 				String key = JSON.toJSONString(input.getKey());
-				String data = JSON.toJSONString(input.getValue());
-				return key + "===" + data;
+				String value = JSON.toJSONString(input.getValue());
+				return KV.<String, String>of(key, value);
 			}
 		}));
 	}
