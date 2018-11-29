@@ -15,3 +15,4 @@ https://ci.apache.org/projects/flink/flink-docs-release-1.6/start/flink_on_windo
 
 
 ## beam
+beam版本需与flink版本兼容：beam-2.8 ===> flink-1.5

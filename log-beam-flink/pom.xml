@@ -13,7 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
 		<beam.version>2.8.0</beam.version>
-		<flink.version>1.6.2</flink.version>
+		<flink.version>1.5.3</flink.version>
 		<kafka.version>0.11.0.2</kafka.version>
 		<springboot.version>1.5.6.RELEASE</springboot.version>
 		<es.version>5.5.0</es.version>
@@ -36,13 +36,11 @@
 			<groupId>org.apache.beam</groupId>
 			<artifactId>beam-runners-flink_2.11</artifactId>
 			<version>${beam.version}</version>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.beam</groupId>
 			<artifactId>beam-runners-direct-java</artifactId>
 			<version>${beam.version}</version>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
@@ -103,9 +101,9 @@
 		</profile>
 		<profile>
 			<!-- 测试环境 -->
-			<id>dohko</id>
+			<id>test</id>
 			<properties>
-				<profiles.active>dohko</profiles.active>
+				<profiles.active>test</profiles.active>
 			</properties>
 		</profile>
 	</profiles>

@@ -2,10 +2,12 @@ package com.reed.log.beam;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Date;
 
 import org.apache.beam.repackaged.beam_sdks_java_io_kafka.com.google.common.collect.ImmutableMap;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
+import org.apache.beam.sdk.io.elasticsearch.ElasticsearchIO;
 import org.apache.beam.sdk.io.kafka.KafkaIO;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -15,6 +17,7 @@ import org.apache.beam.sdk.transforms.ParDo.SingleOutput;
 import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.joda.time.Instant;
@@ -22,6 +25,7 @@ import org.joda.time.Instant;
 import com.alibaba.fastjson.JSON;
 import com.reed.log.common.JobConfig;
 import com.reed.log.common.JobOptions;
+import com.reed.log.es.EsConfig;
 import com.reed.log.kafka.KafkaConfig;
 import com.reed.log.model.BaseObj;
 
@@ -44,6 +48,7 @@ public abstract class BaseBeam {
 	public static void runningJob(Pipeline pipeline, BaseBeam beam) {
 		pipeline.getOptions().setJobName(beam.getClass().getName());
 		beam.doBusiness(pipeline);
+		executePipeline(pipeline);
 	}
 
 	public static Pipeline initPipeline(String[] args) {
@@ -57,7 +62,8 @@ public abstract class BaseBeam {
 		PipelineResult result = pipeline.run();
 		try {
 			result.waitUntilFinish();
-		} catch (Exception exception) {
+		} catch (Exception ex) {
+			log.error("======Job running error:{}======", ex.getMessage());
 			try {
 				result.cancel();
 			} catch (IOException e) {
@@ -147,6 +153,31 @@ public abstract class BaseBeam {
 					.withKeySerializer(StringSerializer.class).withValueSerializer(StringSerializer.class)
 					// settings for ProducerConfig. e.g, to enable compression :
 					.updateProducerProperties(ImmutableMap.of("compression.type", "gzip")));
+		}
+	}
+
+	@SuppressWarnings("serial")
+	public static void writeToEs(PCollection<KV<String, String>> events, String[] esCluster, String indexName,
+			String indexType) {
+		if (events != null) {
+			String indexDate = DateFormatUtils.format(new Date(), "yyyyMMdd");
+			events
+					// kv to v
+					.apply(ParDo.of(new DoFn<KV<String, String>, String>() {
+						@ProcessElement
+						public void processElement(ProcessContext c) {
+							c.output(c.element().getValue());
+						}
+					}))
+					// write to es
+					.apply(ElasticsearchIO.write()
+							// config
+							.withConnectionConfiguration(EsConfig.initEsConfig(esCluster, indexDate, indexType))
+							// retry
+							//.withRetryConfiguration(ElasticsearchIO.RetryConfiguration.create(10,
+							//		org.joda.time.Duration.standardMinutes(3)))
+			//
+			);
 		}
 	}
 

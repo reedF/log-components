@@ -7,10 +7,10 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 
 import com.reed.log.beam.BaseBeam;
+import com.reed.log.common.JobConfig;
 import com.reed.log.model.KafkaMsg;
 
 import lombok.extern.slf4j.Slf4j;
-import test.beam.KafkaUtils;
 
 /**
  * kafka to es
@@ -24,8 +24,7 @@ public class KafkaToEsJob extends BaseBeam {
 
 		Pipeline pipeline = initPipeline(args);
 		runningJob(pipeline, job);
-		executePipeline(pipeline);
-
+		
 		log.info("========Job end======");
 	}
 
@@ -38,7 +37,8 @@ public class KafkaToEsJob extends BaseBeam {
 		PCollection<KV<String, KafkaMsg>> datas = businessLogic(streams);
 		// format and write
 		PCollection<KV<String, String>> result = formatResult(datas);
-		writeToKafka(result, KafkaUtils.borkers, KafkaUtils.topic_result);
+		// writeToKafka(result, KafkaUtils.borkers, KafkaUtils.topic_result);
+		writeToEs(result, JobConfig.getEsCluster(), JobConfig.getEsIndexName(), "test");
 	}
 
 	/**

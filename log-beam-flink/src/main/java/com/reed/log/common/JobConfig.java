@@ -1,6 +1,5 @@
 package com.reed.log.common;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class JobConfig {
-	public static final String PROPS_PATH = JobConfig.class.getResource("/").getPath() + "job.properties";
+	public static final String PROPS_NAME = "job.properties";
 	public static final String RUNNER_TYPE_DIRECT = "direct";
 	public static final String RUNNER_TYPE_FLINK = "flink";
 
@@ -27,11 +26,15 @@ public class JobConfig {
 	public static final String KEY_KAFKA_TOPICS_INPUT = "job.kafka.topics.input";
 	public static final String KEY_KAFKA_TOPICS_OUTPUT = "job.kafka.topics.input";
 	public static final String KEY_KAFKA_GROUP = "job.kafka.group";
+	// es
+	public static final String KEY_ES_CLUSTER = "job.es.cluster";
+	public static final String KEY_ES_INDEX_NAME = "job.es.index.name";
 
 	public static Properties CONFIG = new Properties();
 
 	static {
-		try (InputStream input = new FileInputStream(PROPS_PATH)) {
+		// String path = JobConfig.class.getResource("/").getPath() +PROPS_NAME;
+		try (InputStream input = ClassLoader.getSystemResourceAsStream(PROPS_NAME)) {
 			if (input != null) {
 				CONFIG.load(input);
 				log.info("========Properties setting runner is:{}=======", CONFIG.getProperty(KEY_RUNNING_ENV));
@@ -65,6 +68,18 @@ public class JobConfig {
 
 	public static String getKafkaTopicsOutput() {
 		return CONFIG.getProperty(KEY_KAFKA_TOPICS_OUTPUT);
+	}
 
+	public static String[] getEsCluster() {
+		String[] urls = null;
+		String str = CONFIG.getProperty(KEY_ES_CLUSTER);
+		if (StringUtils.isNotBlank(str)) {
+			urls = Arrays.stream(str.split(",")).map(String::trim).toArray(String[]::new);
+		}
+		return urls;
+	}
+
+	public static String getEsIndexName() {
+		return CONFIG.getProperty(KEY_ES_INDEX_NAME);
 	}
 }

@@ -1,6 +1,5 @@
 package com.reed.log.kafka;
 
-import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,22 +37,17 @@ public class KafkaConfig {
 	 * @param props
 	 */
 	public static void setAuth(Map<String, Object> map) {
-		String jaas = ClassLoader.getSystemResource("") + JAAS;
-		File f = null;
-		try {
-			//according to jaas to set auth
-			f = new File(new URL(jaas).getFile());
-			if (f.exists()) {
-				// kafka auth
-				System.setProperty("java.security.auth.login.config", jaas);
-				// configure the following three settings for SSL Encryption
-				map.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
-				map.put("sasl.mechanism", "PLAIN");
-			}
-		} catch (Exception e) {
-			log.error("=========No auth file:{}!========", jaas);
-		} finally {
-			f = null;
+		URL jaas = ClassLoader.getSystemResource(JAAS);
+		// according to jaas to set auth
+		if (jaas != null) {
+			// kafka auth
+			System.setProperty("java.security.auth.login.config", jaas.toString());
+			// configure the following three settings for SSL Encryption
+			map.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
+			map.put("sasl.mechanism", "PLAIN");
+			log.info("=========load kafka jaas:{}========", jaas.toString());
+		} else {
+			log.info("=========Not find kafka jaas:{}========", jaas);
 		}
 	}
 }
