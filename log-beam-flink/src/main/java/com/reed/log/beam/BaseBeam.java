@@ -101,26 +101,27 @@ public abstract class BaseBeam {
 	 */
 	@SuppressWarnings("serial")
 	public static <T extends BaseObj> PCollection<T> readFromKafka(Pipeline pipeline, Class<T> type) {
-		PCollection<T> events = pipeline.apply(
+		PCollection<T> events = pipeline.apply("kafka-source",
 				//
 				KafkaIO.<String, String>read()
 						// 必需，设置kafka的服务器地址和端口
 						.withBootstrapServers(JobConfig.getKafkaBrokers()).withTopics(JobConfig.getKafkaTopicsInput())// 必需，设置要读取的kafka的topic名称
 						.withKeyDeserializer(StringDeserializer.class)// 必需
 						.withValueDeserializer(StringDeserializer.class)// 必需
+						.updateConsumerProperties(KafkaConfig.getConsumerProperties())
 						// 设置后将无界数据流转换为有界数据集合，源数据达到这个量值就会处理,处理完毕后pipeline退出，仅用于测试与demo
 						// .withMaxNumRecords(10)
 						// 设置PCollection中元素对应的时间戳
 						// .withTimestampPolicyFactory()
 						// .withProcessingTime()
 						// commit offset
-						.commitOffsetsInFinalize().updateConsumerProperties(KafkaConfig.getConsumerProperties())
+						.commitOffsetsInFinalize()
 						// meta
 						.withoutMetadata())
-				.apply(addProcessingTs())
+				.apply("adding-ts", addProcessingTs())
 				// KV to value
 				// .apply(Values.<T>create())
-				.apply(ParDo.of(new DoFn<KV<String, String>, T>() {
+				.apply("transform-kafka-msg", ParDo.of(new DoFn<KV<String, String>, T>() {
 					@ProcessElement
 					public void processElement(ProcessContext c) {
 						// Type type = new TypeReference<T>() {}.getType();
@@ -133,7 +134,7 @@ public abstract class BaseBeam {
 						}
 					}
 				}));
-
+		log.info("======read from kafka source done!=====");
 		return events;
 	}
 
@@ -146,14 +147,17 @@ public abstract class BaseBeam {
 	 */
 	public static void writeToKafka(PCollection<KV<String, String>> events, String borkers, String topic) {
 		if (events != null) {
-			events.apply(KafkaIO.<String, String>write()
-					// setting
-					.withBootstrapServers(borkers).withTopic(topic)
-					// ser
-					.withKeySerializer(StringSerializer.class).withValueSerializer(StringSerializer.class)
-					// settings for ProducerConfig. e.g, to enable compression :
-					.updateProducerProperties(ImmutableMap.of("compression.type", "gzip")));
+			events.apply("kafka-sink",
+					KafkaIO.<String, String>write()
+							// setting
+							.withBootstrapServers(borkers).withTopic(topic)
+							// ser
+							.withKeySerializer(StringSerializer.class).withValueSerializer(StringSerializer.class)
+							// settings for ProducerConfig. e.g, to enable
+							// compression :
+							.updateProducerProperties(ImmutableMap.of("compression.type", "gzip")));
 		}
+		log.info("======write to kafka sink done!=====");
 	}
 
 	@SuppressWarnings("serial")
@@ -163,22 +167,24 @@ public abstract class BaseBeam {
 			String indexDate = DateFormatUtils.format(new Date(), "yyyyMMdd");
 			events
 					// kv to v
-					.apply(ParDo.of(new DoFn<KV<String, String>, String>() {
+					.apply("kv-to-v", ParDo.of(new DoFn<KV<String, String>, String>() {
 						@ProcessElement
 						public void processElement(ProcessContext c) {
 							c.output(c.element().getValue());
 						}
 					}))
 					// write to es
-					.apply(ElasticsearchIO.write()
-							// config
-							.withConnectionConfiguration(EsConfig.initEsConfig(esCluster, indexDate, indexType))
-							// retry
-							//.withRetryConfiguration(ElasticsearchIO.RetryConfiguration.create(10,
-							//		org.joda.time.Duration.standardMinutes(3)))
+					.apply("es-sink",
+							ElasticsearchIO.write()
+									// config
+									.withConnectionConfiguration(EsConfig.initEsConfig(esCluster, indexDate, indexType))
+			// retry
+			// .withRetryConfiguration(ElasticsearchIO.RetryConfiguration.create(10,
+			// org.joda.time.Duration.standardMinutes(3)))
 			//
 			);
 		}
+		log.info("======write to es sink done!=====");
 	}
 
 	@SuppressWarnings("serial")

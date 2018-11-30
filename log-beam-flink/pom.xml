@@ -42,7 +42,8 @@
 			<artifactId>beam-runners-direct-java</artifactId>
 			<version>${beam.version}</version>
 		</dependency>
-		<dependency>
+		<!-- 引入 beam-runners-flink_2.11时，不在需要加入如下flink依赖-->		
+<!-- 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-java</artifactId>
 			<version>${flink.version}</version>
@@ -56,7 +57,7 @@
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-clients_2.11</artifactId>
 			<version>${flink.version}</version>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>

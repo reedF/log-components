@@ -24,7 +24,7 @@ public class KafkaToEsJob extends BaseBeam {
 
 		Pipeline pipeline = initPipeline(args);
 		runningJob(pipeline, job);
-		
+
 		log.info("========Job end======");
 	}
 
@@ -48,7 +48,7 @@ public class KafkaToEsJob extends BaseBeam {
 	 */
 	@SuppressWarnings("serial")
 	public static PCollection<KV<String, KafkaMsg>> businessLogic(PCollection<KafkaMsg> streams) {
-		return streams.apply(ParDo.of(new DoFn<KafkaMsg, KV<String, KafkaMsg>>() {
+		return streams.apply("business-logic", ParDo.of(new DoFn<KafkaMsg, KV<String, KafkaMsg>>() {
 			@ProcessElement
 			public void processElement(ProcessContext c) {
 				KV<String, KafkaMsg> kv = KV.<String, KafkaMsg>of(c.element().getMsgKey(), c.element());

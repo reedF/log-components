@@ -24,7 +24,7 @@ public class JobConfig {
 	// kafka setting
 	public static final String KEY_KAFKA_BROKERS = "job.kafka.brokers";
 	public static final String KEY_KAFKA_TOPICS_INPUT = "job.kafka.topics.input";
-	public static final String KEY_KAFKA_TOPICS_OUTPUT = "job.kafka.topics.input";
+	public static final String KEY_KAFKA_TOPICS_OUTPUT = "job.kafka.topics.output";
 	public static final String KEY_KAFKA_GROUP = "job.kafka.group";
 	// es
 	public static final String KEY_ES_CLUSTER = "job.es.cluster";
@@ -37,8 +37,12 @@ public class JobConfig {
 		try (InputStream input = ClassLoader.getSystemResourceAsStream(PROPS_NAME)) {
 			if (input != null) {
 				CONFIG.load(input);
-				log.info("========Properties setting runner is:{}=======", CONFIG.getProperty(KEY_RUNNING_ENV));
-			}
+				//log.info("========Properties setting runner is:{}=======", CONFIG.getProperty(KEY_RUNNING_ENV));
+			}			
+			log.info("========Job Properties:========");
+			CONFIG.forEach((k, v) -> {
+				log.info("-----{}={}-----", k, v);
+			});
 		} catch (Exception e) {
 			log.error("===========Fail to load properties,ex is:{}==========", e.getMessage());
 			e.printStackTrace();

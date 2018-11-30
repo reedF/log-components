@@ -15,4 +15,11 @@ https://ci.apache.org/projects/flink/flink-docs-release-1.6/start/flink_on_windo
 
 
 ## beam
-beam版本需与flink版本兼容：beam-2.8 ===> flink-1.5
+https://beam.apache.org/documentation/runners/flink/  
+
+1.版本对应关系：beam版本需与flink版本兼容：beam-2.8 ===> flink-1.5  
+2.运行beam-flink jar的方式：  
+内置flink运行：  
+java -jar target/log-beam-flink-fat.jar --filesToStage=target/log-beam-flink-fat.jar  
+远程flink运行：  
+java -jar target/log-beam-flink-fat.jar --flinkMaster=localhost:8081 --filesToStage=target/log-beam-flink-fat.jar  
