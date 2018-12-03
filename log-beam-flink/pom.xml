@@ -42,22 +42,12 @@
 			<artifactId>beam-runners-direct-java</artifactId>
 			<version>${beam.version}</version>
 		</dependency>
-		<!-- 引入 beam-runners-flink_2.11时，不在需要加入如下flink依赖-->		
-<!-- 		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-java</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-streaming-java_2.11</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-clients_2.11</artifactId>
-			<version>${flink.version}</version>
-		</dependency> -->
+		<!-- 引入 beam-runners-flink_2.11时，不在需要加入如下flink依赖 -->
+		<!-- <dependency> <groupId>org.apache.flink</groupId> <artifactId>flink-java</artifactId> 
+			<version>${flink.version}</version> </dependency> <dependency> <groupId>org.apache.flink</groupId> 
+			<artifactId>flink-streaming-java_2.11</artifactId> <version>${flink.version}</version> 
+			</dependency> <dependency> <groupId>org.apache.flink</groupId> <artifactId>flink-clients_2.11</artifactId> 
+			<version>${flink.version}</version> </dependency> -->
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
@@ -181,11 +171,29 @@
 										<Main-Class>${job.main.class}</Main-Class>
 									</manifestEntries>
 								</transformer>
+								<!-- 务必添加以下两项，否则会出现同包同名类打包时的迁移覆盖问题，导致运行时找不到类 -->
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+								<!-- append default configs -->
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>reference.conf</resource>
+								</transformer>
 							</transformers>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- maven-shade-plugin会把包名类名都相同的类改名，故使用 maven-assembly-plugin打可执行jar -->
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-assembly-plugin</artifactId> 
+				<version>3.1.0</version> <configuration> <finalName>${artifactId}</finalName> 
+				<archive> <manifest> <mainClass>${job.main.class}</mainClass> </manifest> 
+				</archive> <descriptorRefs> <descriptorRef>jar-with-dependencies</descriptorRef> 
+				</descriptorRefs> </configuration> <executions> <execution> <id>make-assembly</id> 
+				<phase>package</phase> <goals> <goal>single</goal> </goals> </execution> 
+				</executions> </plugin> -->
+
 		</plugins>
 	</build>
 
