@@ -34,7 +34,9 @@ public class JobConfig {
 
 	static {
 		// String path = JobConfig.class.getResource("/").getPath() +PROPS_NAME;
-		try (InputStream input = ClassLoader.getSystemResourceAsStream(PROPS_NAME)) {
+		//使用flink-runner时，不再是本地jvm启动的ClassLoader，而是flink内runner,无法使用ClassLoader.getSystemResourceAsStream加载
+		//try (InputStream input = ClassLoader.getSystemResourceAsStream(PROPS_NAME)) {
+		try (InputStream input = JobConfig.class.getClassLoader().getResourceAsStream(PROPS_NAME)) {
 			if (input != null) {
 				CONFIG.load(input);
 				//log.info("========Properties setting runner is:{}=======", CONFIG.getProperty(KEY_RUNNING_ENV));

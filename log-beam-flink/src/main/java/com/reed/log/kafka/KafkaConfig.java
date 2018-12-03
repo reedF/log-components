@@ -8,6 +8,7 @@ import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 
 import com.reed.log.common.JobConfig;
+import com.reed.log.common.RunnerTypeEnum;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,7 +38,8 @@ public class KafkaConfig {
 	 * @param props
 	 */
 	public static void setAuth(Map<String, Object> map) {
-		URL jaas = ClassLoader.getSystemResource(JAAS);
+		URL jaas = RunnerTypeEnum.Direct.equals(JobConfig.getRunner()) ? ClassLoader.getSystemResource(JAAS)
+				: KafkaConfig.class.getClassLoader().getResource(JAAS);
 		// according to jaas to set auth
 		if (jaas != null) {
 			// kafka auth
