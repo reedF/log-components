@@ -86,7 +86,7 @@ public class LogAspect {
 				return pjp.proceed();
 			}
 		} catch (Throwable e) {
-			logger.error("LogAspect error>>>>>>>", e);
+			logger.error("=========LogAspect error:{}========", e);
 			resultMap.put("code", 500);
 			resultMap.put("msg", "Logging error:" + e.getMessage());
 			resultMap.put("data", null);
