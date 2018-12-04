@@ -122,7 +122,7 @@ public class LogAspect {
 					}
 				}
 			} catch (Exception e) {
-				logger.error("LogAspect object to map error>>>>>>>", e);
+				logger.error("=======LogAspect object to map error:{}=======", e);
 			}
 		}
 		return result;
