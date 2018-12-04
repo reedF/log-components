@@ -75,7 +75,9 @@ public class LogAspect {
 				Object result = pjp.proceed();// result的值就是被拦截方法的返回值
 
 				// log.setOutputParamMap(getMap(result));
-				getResult(result, log);
+				if (logProperties.isCanLogResult()) {
+					getResult(result, log);
+				}
 				log.setHttpCode(sra.getResponse().getStatus());
 				log.setEndTime(System.currentTimeMillis());
 				printOptLog(log);
@@ -86,7 +88,7 @@ public class LogAspect {
 		} catch (Throwable e) {
 			logger.error("LogAspect error>>>>>>>", e);
 			resultMap.put("code", 500);
-			resultMap.put("msg", "日志处理异常");
+			resultMap.put("msg", "Logging error:" + e.getMessage());
 			resultMap.put("data", null);
 			return JSON.toJSONString(resultMap);
 		}

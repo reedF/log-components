@@ -4,7 +4,7 @@
 	<!-- 常量定义start -->
 	<!-- 默认日志输出格式 -->
 	<property name="DEFAULT_PATTERN"
-		value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - [%file:%line] - %msg%n" />
+		value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{50} - [%file:%line] - %msg%n" />
 	<property name="MAX_HISTORY" value="30" />
 	<property name="ASPECT_TAG" value="aspect" />
 	<!-- 常量定义end -->
@@ -12,8 +12,8 @@
 	<!-- 默认日志的console appender，本地使用的日志 -->
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level)
-				%cyan(%logger{50}) - %yellow([%file:%line]) - %msg%n</pattern>
+			<!-- <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{50}) - %yellow([%file:%line]) - %msg%n</pattern> -->
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5level] [%thread] -[%logger{50}]-[%file:%line] - %msg%n</pattern>
 			<charset>UTF-8</charset>
 		</encoder>
 	</appender>

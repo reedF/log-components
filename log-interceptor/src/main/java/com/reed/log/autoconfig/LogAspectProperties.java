@@ -9,9 +9,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties("log.aspect")
 public class LogAspectProperties {
-
+	// 是否开启AOP拦截
 	private boolean enabled = false;
-	//要拦截的package,多个使用“,”分割
+	// 是否记录请求的返回结果
+	private boolean canLogResult = false;
+	// 要拦截的package,多个使用“,”分割
 	private Set<String> packages;
 
 	public boolean isEnabled() {
@@ -28,6 +30,14 @@ public class LogAspectProperties {
 
 	public void setPackages(Set<String> packages) {
 		this.packages = packages;
+	}
+
+	public boolean isCanLogResult() {
+		return canLogResult;
+	}
+
+	public void setCanLogResult(boolean canLogResult) {
+		this.canLogResult = canLogResult;
 	}
 
 }
