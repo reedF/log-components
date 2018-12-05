@@ -103,9 +103,10 @@
 		<logger name="org.mybatis" level="INFO"></logger>
 		<!-- 同/异步混合模式 ，refer to http://logging.apache.org/log4j/2.x/manual/async.html#MixedSync-Async -->
 		<!-- 需引入依赖：com.lmax.disruptor -->
-		<!-- 必须配置name，取值为包名 -->
+		<!-- AsyncLogger必须配置name，取值为包名;-->
+		<!-- additivity设为false，则子Logger只会在自己的appender里输出，不会在root的logger的appender里输出-->
 		<AsyncLogger name="com.reed.log" level="info"
-			includeLocation="true" additivity="false">
+			includeLocation="true" additivity="true">
 			<AppenderRef ref="RandomAccessFile" />
 		</AsyncLogger>
 		<root level="info">
