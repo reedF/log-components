@@ -13,10 +13,11 @@
 		<property name="HOSTNAME" value="${env:HOSTNAME:-notsetting}" />
 		<property name="APPNAME" value="test" />
 		<!-- ${sys:user.home}即用户HOME目录，等同于之前的${user.home} -->
-		<!-- <property name="LOG_DIR" value="${sys:user.home}/logs/${APPNAME}" /> -->
+		<!-- <property name="LOG_DIR" value="${sys:user.home}/logs/${APPNAME}"/> -->
 		<property name="LOG_DIR" value="F:/home/logs/${APPNAME}" />
 		<!-- RollingFile的最大size -->
 		<property name="MAXSIZE" value="10 KB" />
+
 		<!-- 常量定义end -->
 	</Properties>
 
@@ -25,7 +26,16 @@
 		<!--这个输出控制台的配置 -->
 		<console name="Console" target="SYSTEM_OUT">
 			<!--输出日志的格式 -->
-			<PatternLayout pattern="${DEFAULT_PATTERN}" />
+			<!-- <PatternLayout pattern="${DEFAULT_PATTERN}" /> -->
+			<!-- 当使用JsonLayout时，必须使用log4j-2.11及以上版本，否则KeyValuePair无效 -->
+			<JsonLayout compact="true" eventEol="true" complete="false">
+				<!-- compact等属性，不能使用如下方式配置，否则无效 -->
+				<!-- <compact value="true" /> <eventEol value="true" /> -->
+				<!-- 自定义字段 -->
+				<KeyValuePair key="host" value="$${HOSTNAME}" />
+				<KeyValuePair key="app" value="$${APPNAME}" />
+				<KeyValuePair key="ts" value="$${date:yyyy-MM-dd'T'HH:mm:ss.SSSZ}" />
+			</JsonLayout>
 		</console>
 		<!--文件会打印出所有信息，这个log每次运行程序会自动清空，由append属性决定，这个也挺有用的，适合临时测试用 -->
 		<File name="log" fileName="F:/home/logs/${APPNAME}/${HOSTNAME}-${APPNAME}.log"
@@ -40,7 +50,8 @@
 				onMismatch="DENY" />
 			<PatternLayout pattern="${DEFAULT_PATTERN}" />
 			<Policies>
-				<TimeBasedTriggeringPolicy />
+				<!-- 与filePattern结合，控制时间粒度，当前为1天 -->
+				<TimeBasedTriggeringPolicy interval="1" />
 				<SizeBasedTriggeringPolicy size="${MAXSIZE}" />
 			</Policies>
 		</RollingFile>
@@ -50,7 +61,8 @@
 				onMismatch="DENY" />
 			<PatternLayout pattern="${DEFAULT_PATTERN}" />
 			<Policies>
-				<TimeBasedTriggeringPolicy />
+				<!-- 与filePattern结合，控制时间粒度，当前为1天 -->
+				<TimeBasedTriggeringPolicy interval="1" />
 				<SizeBasedTriggeringPolicy size="${MAXSIZE}" />
 			</Policies>
 			<!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了20 -->
@@ -62,22 +74,46 @@
 				onMismatch="DENY" />
 			<PatternLayout pattern="${DEFAULT_PATTERN}" />
 			<Policies>
-				<TimeBasedTriggeringPolicy />
+				<!-- 与filePattern结合，控制时间粒度，当前为1天 -->
+				<TimeBasedTriggeringPolicy interval="1" />
 				<SizeBasedTriggeringPolicy size="${MAXSIZE}" />
 			</Policies>
 		</RollingFile>
+
+		<!-- Async Loggers will auto-flush in batches, so switch off immediateFlush. -->
+		<RandomAccessFile name="RandomAccessFile" bufferSize="262144"
+			fileName="${LOG_DIR}/${HOSTNAME}-asyc.log" immediateFlush="false"
+			append="false">
+			<PatternLayout pattern="${DEFAULT_PATTERN}" />
+		</RandomAccessFile>
+
+		<!-- 异步输出,使用DisruptorBlockingQueue时需引入依赖：com.conversantmedia.disruptor -->
+		<Async name="Async" bufferSize="1024">
+			<AppenderRef ref="log" />
+			<AppenderRef ref="RollingFileInfo" />
+			<AppenderRef ref="RollingFileWarn" />
+			<AppenderRef ref="RollingFileError" />
+			<DisruptorBlockingQueue />
+		</Async>
 	</appenders>
 	<!--然后定义logger，只有定义了logger并引入的appender，appender才会生效 -->
 	<loggers>
 		<!--过滤掉spring和mybatis的一些无用的DEBUG信息 -->
 		<logger name="org.springframework" level="INFO"></logger>
 		<logger name="org.mybatis" level="INFO"></logger>
-		<root level="all">
-			<appender-ref ref="Console" />
-			<appender-ref ref="log" />
-			<appender-ref ref="RollingFileInfo" />
-			<appender-ref ref="RollingFileWarn" />
-			<appender-ref ref="RollingFileError" />
+		<!-- 同/异步混合模式 ，refer to http://logging.apache.org/log4j/2.x/manual/async.html#MixedSync-Async -->
+		<!-- 需引入依赖：com.lmax.disruptor -->
+		<!-- 必须配置name，取值为包名 -->
+		<AsyncLogger name="com.reed.log" level="info"
+			includeLocation="true" additivity="false">
+			<AppenderRef ref="RandomAccessFile" />
+		</AsyncLogger>
+		<root level="info">
+			<AppenderRef ref="Console" />
+			<!-- <appender-ref ref="log" /> <appender-ref ref="RollingFileInfo" /> 
+				<appender-ref ref="RollingFileWarn" /> <appender-ref ref="RollingFileError" 
+				/> -->
+			<AppenderRef ref="Async" />
 		</root>
 	</loggers>
 </configuration>
