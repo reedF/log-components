@@ -44,7 +44,7 @@
 		</File>
 		<!-- 这个会打印出所有的info及以下级别的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档 -->
 		<RollingFile name="RollingFileInfo" fileName="${LOG_DIR}/${HOSTNAME}-info.log"
-			filePattern="${LOG_DIR}/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log">
+			filePattern="${LOG_DIR}/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log.zip">
 			<!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch） -->
 			<ThresholdFilter level="info" onMatch="ACCEPT"
 				onMismatch="DENY" />
@@ -56,7 +56,7 @@
 			</Policies>
 		</RollingFile>
 		<RollingFile name="RollingFileWarn" fileName="${LOG_DIR}/${HOSTNAME}-warn.log"
-			filePattern="${LOG_DIR}/$${date:yyyy-MM}/warn-%d{yyyy-MM-dd}-%i.log">
+			filePattern="${LOG_DIR}/$${date:yyyy-MM}/warn-%d{yyyy-MM-dd}-%i.log.zip">
 			<ThresholdFilter level="warn" onMatch="ACCEPT"
 				onMismatch="DENY" />
 			<PatternLayout pattern="${DEFAULT_PATTERN}" />
@@ -69,7 +69,7 @@
 			<DefaultRolloverStrategy max="20" />
 		</RollingFile>
 		<RollingFile name="RollingFileError" fileName="${LOG_DIR}/${HOSTNAME}-error.log"
-			filePattern="${LOG_DIR}/$${date:yyyy-MM}/error-%d{yyyy-MM-dd}-%i.log">
+			filePattern="${LOG_DIR}/$${date:yyyy-MM}/error-%d{yyyy-MM-dd}-%i.log.zip">
 			<ThresholdFilter level="error" onMatch="ACCEPT"
 				onMismatch="DENY" />
 			<PatternLayout pattern="${DEFAULT_PATTERN}" />
