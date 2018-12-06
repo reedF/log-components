@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
+import com.reed.log.aop.annotations.LogAopPointCut;
+
 /**
  *测试：
  *1.@PostConstruct注解在bean初始化时的执行顺序
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
  * @author reed
  *
  */
+@LogAopPointCut(canLogResult="true")
 @Component
 @ConditionalOnProperty(prefix = "endpoints", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AnnotationOrderTestBean implements InitializingBean {
@@ -51,4 +54,5 @@ public class AnnotationOrderTestBean implements InitializingBean {
 		System.out.println("InitSequenceBean: create new bean" + "===" + tag);
 		return new AnnotationOrderTestBean();
 	}
+
 }
