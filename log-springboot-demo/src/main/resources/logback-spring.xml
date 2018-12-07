@@ -3,6 +3,7 @@
 
 	<!-- 常量定义start -->
 	<!-- 默认日志输出格式 -->
+	<!-- https://logback.qos.ch/manual/layouts.html#conversionWord -->
 	<property name="DEFAULT_PATTERN"
 		value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{50} - [%file:%line] - [%M] - %msg%n" />
 	<property name="MAX_HISTORY" value="30" />
