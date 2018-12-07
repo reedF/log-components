@@ -8,8 +8,9 @@
 	<!-- 常量定义start -->
 	<Properties>
 		<!-- 默认日志输出格式 -->
+		<!-- 属性可参考http://logging.apache.org/log4j/2.x/manual/layouts.html#LocationInformation -->
 		<property name="DEFAULT_PATTERN"
-			value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5level] [%thread] -[%logger{50}]-[%file:%line] - %msg%n" />
+			value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5level] [%thread] -[%logger{50}]-[%file:%line]-[%method] - %msg%n" />
 		<property name="HOSTNAME" value="${env:HOSTNAME:-notsetting}" />
 		<property name="APPNAME" value="test" />
 		<!-- ${sys:user.home}即用户HOME目录，等同于之前的${user.home} -->
@@ -28,7 +29,7 @@
 			<!--输出日志的格式 -->
 			<!-- <PatternLayout pattern="${DEFAULT_PATTERN}" /> -->
 			<!-- 当使用JsonLayout时，必须使用log4j-2.11及以上版本，否则KeyValuePair无效 -->
-			<JsonLayout compact="true" eventEol="true" complete="false">
+			<JsonLayout compact="true" eventEol="true" complete="false" locationInfo="true">
 				<!-- compact等属性，不能使用如下方式配置，否则无效 -->
 				<!-- <compact value="true" /> <eventEol value="true" /> -->
 				<!-- 自定义字段 -->
@@ -88,7 +89,7 @@
 		</RandomAccessFile>
 
 		<!-- 异步输出,使用DisruptorBlockingQueue时需引入依赖：com.conversantmedia.disruptor -->
-		<Async name="Async" bufferSize="1024">
+		<Async name="Async" bufferSize="1024" includeLocation="true">
 			<AppenderRef ref="log" />
 			<AppenderRef ref="RollingFileInfo" />
 			<AppenderRef ref="RollingFileWarn" />
