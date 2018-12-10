@@ -2,6 +2,10 @@
 <configuration>
 
 	<!-- 常量定义start -->
+	<!-- 应用名,业务根据自身修改此值 -->
+	<property name="APPNAME" value="test" />
+	<!-- 日志文件保存目录，业务根据自身修改此值 -->
+	<property name="LOGDIR" value="F:/home/logs/${APPNAME}" />
 	<!-- 默认日志输出格式 -->
 	<!-- https://logback.qos.ch/manual/layouts.html#conversionWord -->
 	<property name="DEFAULT_PATTERN"
@@ -36,13 +40,35 @@
 			</fileNamePattern>
 			<maxHistory>${MAX_HISTORY}</maxHistory>
 		</rollingPolicy>
-		<!-- logstash json日志格式：使用LogstashEncoder时中文会转义为unicode字符，需在logstash采集端配置中input指定codec => "json" -->
+		<!-- logstash json日志格式：使用LogstashEncoder时中文会转义为unicode字符，需在logstash采集端配置中input指定codec 
+			=> "json" -->
 		<encoder class="net.logstash.logback.encoder.LogstashEncoder"
 			charset="UTF-8">
 			<customFields>{"appname":"log-test"}</customFields>
 		</encoder>
 		<!-- <encoder> <pattern>${DEFAULT_PATTERN}</pattern> <charset>UTF-8</charset> 
 			</encoder> -->
+	</appender>
+
+	<!-- error级日志 -->
+	<appender name="ROLLING_FILE_ERROR"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>ERROR</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<file>${LOGDIR}/${HOSTNAME}-${APPNAME}-error.log</file>
+		<append>true</append>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${LOGDIR}/${HOSTNAME}-${APPNAME}-error.%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<maxHistory>${MAX_HISTORY}</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>${DEFAULT_PATTERN}</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
 	</appender>
 
 	<!-- async -->
@@ -57,10 +83,10 @@
 
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
-		<springProfile name="dev,pre,prod">
-			<appender-ref ref="ROLLING_FILE_ASPECT" />
-			<!-- <appender-ref ref="ASYNC" /> -->
-		</springProfile>
+		<!-- <springProfile name="dev,pre,prod"> -->
+		<appender-ref ref="ROLLING_FILE_ASPECT" />
+		<!-- <appender-ref ref="ASYNC" /> -->
+		<!-- </springProfile> -->
 	</root>
 	<logger name="com.reed.log.interceptor.LogAspect" level="INFO"
 		additivity="false">

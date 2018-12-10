@@ -29,7 +29,8 @@
 			<!--输出日志的格式 -->
 			<!-- <PatternLayout pattern="${DEFAULT_PATTERN}" /> -->
 			<!-- 当使用JsonLayout时，必须使用log4j-2.11及以上版本，否则KeyValuePair无效 -->
-			<JsonLayout compact="true" eventEol="true" complete="false" locationInfo="true">
+			<JsonLayout compact="true" eventEol="true" complete="false"
+				locationInfo="true">
 				<!-- compact等属性，不能使用如下方式配置，否则无效 -->
 				<!-- <compact value="true" /> <eventEol value="true" /> -->
 				<!-- 自定义字段 -->
@@ -44,11 +45,21 @@
 			<PatternLayout pattern="${DEFAULT_PATTERN}" />
 		</File>
 		<!-- 这个会打印出所有的info及以下级别的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档 -->
+		<!-- 一下三配置，将按日志level输出到对应不同的日志文件 -->
 		<RollingFile name="RollingFileInfo" fileName="${LOG_DIR}/${HOSTNAME}-info.log"
 			filePattern="${LOG_DIR}/$${date:yyyy-MM}/info-%d{yyyy-MM-dd}-%i.log.zip">
 			<!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch） -->
-			<ThresholdFilter level="info" onMatch="ACCEPT"
-				onMismatch="DENY" />
+			<!-- <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY" 
+				/> -->
+			<!-- 仅输出debug与info -->
+			<Filters>
+				 
+				<ThresholdFilter level="warn" onMatch="DENY"
+					onMismatch="NEUTRAL" />
+				 
+				<ThresholdFilter level="debug" onMatch="ACCEPT"
+					onMismatch="DENY" />
+			</Filters>
 			<PatternLayout pattern="${DEFAULT_PATTERN}" />
 			<Policies>
 				<!-- 与filePattern结合，控制时间粒度，当前为1天 -->
@@ -58,8 +69,13 @@
 		</RollingFile>
 		<RollingFile name="RollingFileWarn" fileName="${LOG_DIR}/${HOSTNAME}-warn.log"
 			filePattern="${LOG_DIR}/$${date:yyyy-MM}/warn-%d{yyyy-MM-dd}-%i.log.zip">
-			<ThresholdFilter level="warn" onMatch="ACCEPT"
-				onMismatch="DENY" />
+			<!-- 仅输出warn -->
+			<Filters>				 
+				<ThresholdFilter level="error" onMatch="DENY"
+					onMismatch="NEUTRAL" />				 
+				<ThresholdFilter level="warn" onMatch="ACCEPT"
+					onMismatch="DENY" />
+			</Filters>
 			<PatternLayout pattern="${DEFAULT_PATTERN}" />
 			<Policies>
 				<!-- 与filePattern结合，控制时间粒度，当前为1天 -->
@@ -71,6 +87,7 @@
 		</RollingFile>
 		<RollingFile name="RollingFileError" fileName="${LOG_DIR}/${HOSTNAME}-error.log"
 			filePattern="${LOG_DIR}/$${date:yyyy-MM}/error-%d{yyyy-MM-dd}-%i.log.zip">
+			<!-- 仅输出error及以上级日志 -->
 			<ThresholdFilter level="error" onMatch="ACCEPT"
 				onMismatch="DENY" />
 			<PatternLayout pattern="${DEFAULT_PATTERN}" />
@@ -104,8 +121,8 @@
 		<logger name="org.mybatis" level="INFO"></logger>
 		<!-- 同/异步混合模式 ，refer to http://logging.apache.org/log4j/2.x/manual/async.html#MixedSync-Async -->
 		<!-- 需引入依赖：com.lmax.disruptor -->
-		<!-- AsyncLogger必须配置name，取值为包名;-->
-		<!-- additivity设为false，则子Logger只会在自己的appender里输出，不会在root的logger的appender里输出-->
+		<!-- AsyncLogger必须配置name，取值为包名; -->
+		<!-- additivity设为false，则子Logger只会在自己的appender里输出，不会在root的logger的appender里输出 -->
 		<AsyncLogger name="com.reed.log" level="info"
 			includeLocation="true" additivity="true">
 			<AppenderRef ref="RandomAccessFile" />
