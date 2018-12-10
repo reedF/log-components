@@ -13,7 +13,8 @@
 	<!-- 默认日志的console appender，本地使用的日志 -->
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<!-- <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{50}) - %yellow([%file:%line]) - %msg%n</pattern> -->
+			<!-- <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) 
+				%cyan(%logger{50}) - %yellow([%file:%line]) - %msg%n</pattern> -->
 			<pattern>${DEFAULT_PATTERN}</pattern>
 			<charset>UTF-8</charset>
 		</encoder>
@@ -43,12 +44,17 @@
 		<!-- <encoder> <pattern>${DEFAULT_PATTERN}</pattern> <charset>UTF-8</charset> 
 			</encoder> -->
 	</appender>
-
+	
+	<!-- async -->
+	<appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="ROLLING_FILE_ASPECT" />
+	</appender>
 
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
 		<springProfile name="dev,pre,prod">
 			<appender-ref ref="ROLLING_FILE_ASPECT" />
+			<!-- <appender-ref ref="ASYNC" /> -->
 		</springProfile>
 	</root>
 	<logger name="com.reed.log.interceptor.LogAspect" level="INFO"
