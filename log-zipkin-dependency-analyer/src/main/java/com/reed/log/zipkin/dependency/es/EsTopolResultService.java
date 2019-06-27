@@ -5,8 +5,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.elasticsearch.index.query.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.ScrolledPage;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.stereotype.Service;
 
 import com.codahale.metrics.Counter;
@@ -89,7 +94,7 @@ public class EsTopolResultService {
 			String cUrl = childName;
 			if (childName != null) {
 				if (childName.contains(TopolLinker.TRACETYPETAG)) {
-					//type = childName.split(TopolLinker.TRACETYPETAG)[0];
+					// type = childName.split(TopolLinker.TRACETYPETAG)[0];
 					cUrl = childName.split(TopolLinker.TRACETYPETAG)[1];
 				} else {
 					cUrl = pUrl;
@@ -103,4 +108,26 @@ public class EsTopolResultService {
 		}
 	}
 
+	/**
+	 * Scroll方式加载数据，适用于大数据量加载
+	 * @param queryBuilder
+	 * @return
+	 */
+	public List<EsTopolResult> getAllDataByScroll(QueryBuilder queryBuilder) {
+		int size = 5000;
+		long time = System.currentTimeMillis();
+		List<EsTopolResult> data = new ArrayList<>();
+		SearchQuery sq = new NativeSearchQueryBuilder().withQuery(queryBuilder).withPageable(PageRequest.of(0, size))
+				.build();
+		ScrolledPage<EsTopolResult> scroll = (ScrolledPage<EsTopolResult>) esTemplate.startScroll(time, sq,
+				EsTopolResult.class);
+		while (scroll.hasContent()) {
+			data.addAll(scroll.getContent());
+			scroll = (ScrolledPage<EsTopolResult>) esTemplate.continueScroll(scroll.getScrollId(), time,
+					EsTopolResult.class);
+		}
+		esTemplate.clearScroll(scroll.getScrollId());
+
+		return data;
+	}
 }
